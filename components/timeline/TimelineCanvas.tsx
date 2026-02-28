@@ -1,0 +1,277 @@
+'use client';
+
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { animate } from 'framer-motion';
+import type { ContextTree, EventSummary } from '@/lib/types';
+import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
+import { computeTimelineRange, eventToFractionalYear } from '@/lib/timeline/date-utils';
+import { getVisibleEvents } from '@/lib/timeline/visibility';
+import { useTimelineStore } from '@/lib/store';
+import ContextDetailHeader from '@/components/detail/ContextDetailHeader';
+import TimelineAxis from '@/components/timeline/TimelineAxis';
+import ZoomControls from '@/components/timeline/ZoomControls';
+import EventMarker from '@/components/timeline/EventMarker';
+import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
+import SubTimelineBars from '@/components/timeline/SubTimelineBars';
+
+interface Props {
+  context: ContextTree;
+  events: EventSummary[];
+  initialEventSlug?: string;
+}
+
+const ZOOM_FACTOR = 1.4;
+const MIN_PPY = 1e-12;
+const MAX_PPY = 400;
+
+export default function TimelineCanvas({ context, events, initialEventSlug }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [canvasHeight, setCanvasHeight] = useState(0);
+
+  const [viewportStart, setViewportStart] = useState<number>(0);
+  const [pixelsPerYear, setPixelsPerYear] = useState<number>(1);
+
+  const vpRef = useRef(viewportStart);
+  const ppyRef = useRef(pixelsPerYear);
+  vpRef.current = viewportStart;
+  ppyRef.current = pixelsPerYear;
+  const widthRef = useRef(width);
+  widthRef.current = width;
+
+  const setSelectedEvent = useTimelineStore((s) => s.setSelectedEvent);
+
+  const { minYear, maxYear } = computeTimelineRange(
+    events,
+    context.softStartYear,
+    context.softEndYear
+  );
+
+  // ─── Fit to view ──────────────────────────────────────────────────────────
+  const fitToView = useCallback(
+    (w: number = widthRef.current) => {
+      if (w <= 0) return;
+      const { viewportStart: targetVS, pixelsPerYear: targetPPY } = computeFitToView(minYear, maxYear, w);
+      const fromVS = vpRef.current;
+      const fromPPY = ppyRef.current;
+      if (Math.abs(fromVS - targetVS) < 0.001 && Math.abs(fromPPY - targetPPY) < 0.0001) return;
+      animate(0, 1, {
+        duration: 0.5,
+        ease: [0.4, 0, 0.2, 1],
+        onUpdate: (t) => {
+          setViewportStart(fromVS + (targetVS - fromVS) * t);
+          setPixelsPerYear(fromPPY + (targetPPY - fromPPY) * t);
+        },
+        onComplete: () => {
+          setViewportStart(targetVS);
+          setPixelsPerYear(targetPPY);
+        },
+      });
+    },
+    [minYear, maxYear]
+  );
+
+  // ─── ResizeObserver ───────────────────────────────────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver((entries) => {
+      const rect = entries[0].contentRect;
+      setWidth(rect.width);
+      setCanvasHeight(rect.height);
+    });
+    obs.observe(el);
+    const rect = el.getBoundingClientRect();
+    setWidth(rect.width);
+    setCanvasHeight(rect.height);
+    return () => obs.disconnect();
+  }, []);
+
+  // Init viewport
+  const initialised = useRef(false);
+  useEffect(() => {
+    if (width > 0 && !initialised.current) {
+      const { viewportStart: vs, pixelsPerYear: ppy } = computeFitToView(minYear, maxYear, width);
+      setViewportStart(vs);
+      setPixelsPerYear(ppy);
+      initialised.current = true;
+    }
+  }, [width, minYear, maxYear]);
+
+  // Init selected event from URL param (N11b)
+  useEffect(() => {
+    if (initialEventSlug) {
+      const match = events.find((e) => e.slug === initialEventSlug);
+      if (match) setSelectedEvent(match.id);
+    }
+  }, [initialEventSlug, events, setSelectedEvent]);
+
+  // ─── Wheel zoom ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorYear = pixelToYear(cursorX, vpRef.current, ppyRef.current);
+      const delta = e.deltaY < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
+      const newPPY = Math.min(MAX_PPY, Math.max(MIN_PPY, ppyRef.current * delta));
+      setPixelsPerYear(newPPY);
+      setViewportStart(cursorYear - cursorX / newPPY);
+    };
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  // ─── Pointer drag ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    let dragging = false;
+    let lastX = 0;
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      dragging = true;
+      lastX = e.clientX;
+      el.setPointerCapture(e.pointerId);
+      el.style.cursor = 'grabbing';
+    };
+    const onMove = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      lastX = e.clientX;
+      setViewportStart((vs) => vs - dx / ppyRef.current);
+    };
+    const onUp = () => {
+      dragging = false;
+      el.style.cursor = 'grab';
+    };
+    el.addEventListener('pointerdown', onDown);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', onUp);
+    el.style.cursor = 'grab';
+    return () => {
+      el.removeEventListener('pointerdown', onDown);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', onUp);
+    };
+  }, []);
+
+  // ─── Zoom buttons ─────────────────────────────────────────────────────────
+  const zoomBy = useCallback((factor: number) => {
+    const centre = vpRef.current + widthRef.current / 2 / ppyRef.current;
+    const newPPY = Math.min(MAX_PPY, Math.max(MIN_PPY, ppyRef.current * factor));
+    setPixelsPerYear(newPPY);
+    setViewportStart(centre - widthRef.current / 2 / newPPY);
+  }, []);
+
+  // ─── Zoom to cluster ──────────────────────────────────────────────────────
+  const zoomToCluster = useCallback((cluster: Cluster) => {
+    const years = cluster.events.map((e) => eventToFractionalYear(e));
+    const lo = Math.min(...years);
+    const hi = Math.max(...years);
+    const pad = Math.max(hi - lo, 1) * 0.3;
+    const targetVS = lo - pad;
+    const targetPPY = widthRef.current / (hi - lo + 2 * pad);
+    const fromVS = vpRef.current;
+    const fromPPY = ppyRef.current;
+    animate(0, 1, {
+      duration: 0.45,
+      ease: [0.4, 0, 0.2, 1],
+      onUpdate: (t) => {
+        setViewportStart(fromVS + (targetVS - fromVS) * t);
+        setPixelsPerYear(fromPPY + (targetPPY - fromPPY) * t);
+      },
+      onComplete: () => {
+        setViewportStart(targetVS);
+        setPixelsPerYear(targetPPY);
+      },
+    });
+  }, []);
+
+  // ─── Render pipeline ──────────────────────────────────────────────────────
+  const visible = getVisibleEvents(events, pixelsPerYear);
+  const { singles, clusters } = clusterEvents(visible, viewportStart, pixelsPerYear);
+
+  return (
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <ContextDetailHeader
+        context={context}
+        eventsMinYear={events.length > 0 ? minYear : null}
+        eventsMaxYear={events.length > 0 ? maxYear : null}
+      />
+
+      <div
+        className="relative flex-1 min-h-0 overflow-hidden select-none"
+        ref={containerRef}
+      >
+        {width > 0 && canvasHeight > 0 && (
+          <svg
+            width={width}
+            height={canvasHeight}
+            className="absolute inset-0 pointer-events-none"
+            style={{ display: 'block' }}
+          >
+            <TimelineAxis
+              viewportStart={viewportStart}
+              pixelsPerYear={pixelsPerYear}
+              width={width}
+              height={canvasHeight}
+              asSvgGroup
+            />
+
+            {/* Sub-timeline bars */}
+            <SubTimelineBars
+              children={context.children}
+              viewportStart={viewportStart}
+              pixelsPerYear={pixelsPerYear}
+              width={width}
+            />
+
+            {/* Events */}
+            {singles.map((ev) => (
+              <EventMarker
+                key={ev.id}
+                event={ev}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                canvasHeight={canvasHeight}
+                onSelect={setSelectedEvent}
+              />
+            ))}
+
+            {clusters.map((cl, i) => (
+              <EventCluster
+                key={i}
+                cluster={cl}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                onZoom={zoomToCluster}
+              />
+            ))}
+          </svg>
+        )}
+
+        {/* Interaction overlay */}
+        <div className="absolute inset-0" />
+
+        <div className="absolute right-4 bottom-6 z-10 pointer-events-auto">
+          <ZoomControls
+            onZoomIn={() => zoomBy(ZOOM_FACTOR)}
+            onZoomOut={() => zoomBy(1 / ZOOM_FACTOR)}
+            onFitToView={() => fitToView()}
+          />
+        </div>
+
+        {events.length === 0 && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <p className="text-sm text-stone-400">Nessun evento in questo contesto</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

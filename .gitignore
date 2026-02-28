@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Environment variables (keep .env.local.example)
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+
+# Debug
+npm-debug.log*
