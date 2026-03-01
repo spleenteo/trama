@@ -20,6 +20,9 @@ export const ALL_ROOT_CONTEXTS_QUERY = /* GraphQL */ `
         title
         slug
         color { hex }
+        softStartYear
+        softEndYear
+        isConcluded
       }
       _allReferencingEvents(
         filter: { visibility: { eq: "super" } }

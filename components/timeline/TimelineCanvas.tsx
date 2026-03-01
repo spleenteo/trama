@@ -178,8 +178,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     let lastX = 0;
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
-      // Don't start drag when clicking on interactive controls (buttons etc.)
-      if ((e.target as HTMLElement).closest('button')) return;
+      // Don't start drag when clicking on interactive controls (buttons, SVG role="button")
+      if ((e.target as Element).closest('button, [role="button"]')) return;
       dragging = true;
       lastX = e.clientX;
       el.setPointerCapture(e.pointerId);
@@ -378,9 +378,6 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
             ))}
           </svg>
         )}
-
-        {/* Interaction overlay */}
-        <div className="absolute inset-0" />
 
         <div className="absolute right-4 bottom-6 z-10 pointer-events-auto">
           <ZoomControls

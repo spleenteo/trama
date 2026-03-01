@@ -7,7 +7,7 @@ interface Props {
 export default function DatoStructuredText({ data }: Props) {
   if (!data) return null;
   return (
-    <div className="prose prose-sm prose-stone max-w-none">
+    <div className="prose prose-sm prose-stone max-w-none text-stone-700">
       <StructuredText data={data as Parameters<typeof StructuredText>[0]['data']} />
     </div>
   );

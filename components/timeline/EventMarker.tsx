@@ -75,6 +75,7 @@ export default function EventMarker({
         onClick={() => onSelect(event.id)}
         role="button"
         aria-label={event.title}
+        style={{ pointerEvents: 'auto' }}
       >
         <title>{`${event.title} — ${formatTimelineDate(event.year, event.month, event.day)}`}</title>
         {/* Hover target */}
