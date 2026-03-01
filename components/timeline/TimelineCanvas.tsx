@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { animate } from 'framer-motion';
 import type { ChildEvent, ContextTree, EventSummary } from '@/lib/types';
-import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
+import { computeFitToView, pixelToYear, yearToPixel } from '@/lib/timeline/scale';
 import { computeTimelineRange, eventToFractionalYear } from '@/lib/timeline/date-utils';
 import { getVisibleEvents } from '@/lib/timeline/visibility';
 import { useTimelineStore } from '@/lib/store';
@@ -14,7 +14,7 @@ import EventMarker from '@/components/timeline/EventMarker';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
-import DotMarker from '@/components/timeline/DotMarker';
+import SuperEventMarker, { SUPER_CARD_W } from '@/components/timeline/SuperEventMarker';
 
 interface Props {
   context: ContextTree;
@@ -25,6 +25,43 @@ interface Props {
 }
 
 const ZOOM_FACTOR = 1.4;
+
+// ─── Anti-collision level assignment for all point events ─────────────────────
+function assignLevels(
+  events: EventSummary[],
+  viewportStart: number,
+  pixelsPerYear: number,
+): Map<string, number> {
+  // Sort a copy by pixel X so we process left-to-right
+  const sorted = [...events].sort((a, b) => {
+    const xa = yearToPixel(eventToFractionalYear(a), viewportStart, pixelsPerYear);
+    const xb = yearToPixel(eventToFractionalYear(b), viewportStart, pixelsPerYear);
+    return xa - xb;
+  });
+
+  const levels = new Map<string, number>();
+  // occupied[L] = list of [lo, hi] pixel ranges already placed at level L
+  const occupied: [number, number][][] = [];
+
+  for (const ev of sorted) {
+    const x = yearToPixel(eventToFractionalYear(ev), viewportStart, pixelsPerYear);
+    const lo = x - SUPER_CARD_W / 2;
+    const hi = x + SUPER_CARD_W / 2;
+
+    let L = 0;
+    while (true) {
+      if (!occupied[L]) occupied[L] = [];
+      const overlaps = occupied[L].some(([a, b]) => lo < b && hi > a);
+      if (!overlaps) break;
+      L++;
+    }
+
+    levels.set(ev.id, L);
+    occupied[L].push([lo, hi]);
+  }
+
+  return levels;
+}
 const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scroll
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
@@ -207,8 +244,18 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const visible = getVisibleEvents(events, pixelsPerYear);
   const { singles, clusters } = clusterEvents(visible, viewportStart, pixelsPerYear);
 
+  // Split own events: range events keep the bar style, point events get staggered cards
+  const pointSingles = singles.filter((e) => e.endYear == null);
+  const rangeSingles = singles.filter((e) => e.endYear != null);
+
   const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super');
   const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
+
+  // Unified level pool: all point events share the same Y-space below the axis
+  const allPointEvents: EventSummary[] = [...pointSingles, ...superChildEvents, ...mainChildEvents];
+  const pointLevels = assignLevels(allPointEvents, viewportStart, pixelsPerYear);
+
+  const contextColor = context.color?.hex ?? '#6b7280';
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -260,8 +307,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               axisY={axisY}
             />
 
-            {/* Events — below axis */}
-            {singles.map((ev) => (
+            {/* Range events (own context) — bar style */}
+            {rangeSingles.map((ev) => (
               <EventMarker
                 key={ev.id}
                 event={ev}
@@ -273,6 +320,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               />
             ))}
 
+            {/* Clustered events */}
             {clusters.map((cl, i) => (
               <EventCluster
                 key={i}
@@ -284,29 +332,47 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               />
             ))}
 
-            {/* Super events from child contexts */}
+            {/* Point events (own context) — staggered cards */}
+            {pointSingles.map((ev) => (
+              <SuperEventMarker
+                key={ev.id}
+                event={ev}
+                color={contextColor}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                axisY={axisY}
+                width={width}
+                level={pointLevels.get(ev.id) ?? 0}
+                onSelect={setSelectedEvent}
+              />
+            ))}
+
+            {/* Super child events — staggered cards */}
             {superChildEvents.map((ev) => (
-              <EventMarker
+              <SuperEventMarker
                 key={`child-super-${ev.id}`}
                 event={ev}
                 color={ev.sourceContextColor ?? undefined}
                 viewportStart={viewportStart}
                 pixelsPerYear={pixelsPerYear}
-                canvasHeight={canvasHeight}
                 axisY={axisY}
+                width={width}
+                level={pointLevels.get(ev.id) ?? 0}
                 onSelect={setSelectedEvent}
               />
             ))}
 
-            {/* Main events from child contexts — compact dot + hover */}
+            {/* Main child events — staggered cards */}
             {mainChildEvents.map((ev) => (
-              <DotMarker
+              <SuperEventMarker
                 key={`child-main-${ev.id}`}
                 event={ev}
+                color={ev.sourceContextColor ?? undefined}
                 viewportStart={viewportStart}
                 pixelsPerYear={pixelsPerYear}
                 axisY={axisY}
                 width={width}
+                level={pointLevels.get(ev.id) ?? 0}
                 onSelect={setSelectedEvent}
               />
             ))}
