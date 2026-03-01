@@ -15,3 +15,9 @@ out/
 
 # Debug
 npm-debug.log*
+
+# AI tooling
+.agents/
+
+# Business docs
+presentation/
