@@ -19,6 +19,7 @@ interface Props {
   context: ContextTree;
   events: EventSummary[];
   initialEventSlug?: string;
+  showContextBar?: boolean;
 }
 
 const ZOOM_FACTOR = 1.4;
@@ -26,7 +27,7 @@ const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scro
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
 
-export default function TimelineCanvas({ context, events, initialEventSlug }: Props) {
+export default function TimelineCanvas({ context, events, initialEventSlug, showContextBar = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
@@ -233,7 +234,7 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
             />
 
             {/* Current context bar — above child bars */}
-            <TimelineBar
+            {showContextBar && <TimelineBar
               title={context.title}
               color={context.color?.hex ?? null}
               minYear={minYear}
@@ -243,7 +244,7 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
               pixelsPerYear={pixelsPerYear}
               axisY={axisY}
               width={width}
-            />
+            />}
 
             {/* Sub-timeline bars — above axis */}
             <SubTimelineBars
