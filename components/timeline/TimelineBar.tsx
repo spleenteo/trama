@@ -15,8 +15,9 @@ interface Props {
 }
 
 // Must match SubTimelineBars constants
-const CHILD_BAR_HEIGHT = 16;
-const CHILD_BAR_GAP = 8;
+const CHILD_BAR_HEIGHT = 20;
+const CHILD_BAR_GAP = 16;
+const CHILD_AXIS_CLEARANCE = 40;
 const SELF_BAR_HEIGHT = 24;
 const SELF_BAR_GAP = 12;
 
@@ -47,8 +48,11 @@ export default function TimelineBar({
 
   if (barWidth <= 0) return null;
 
-  // Position above all child bars + gap
-  const stackHeight = Math.max(numChildren, 1) * (CHILD_BAR_HEIGHT + CHILD_BAR_GAP);
+  // Total vertical space occupied by child bars from axis to top of highest bar.
+  // Formula mirrors SubTimelineBars: AXIS_CLEARANCE + BAR_HEIGHT + (n-1)*(BAR_HEIGHT+BAR_GAP)
+  // Simplified: CHILD_AXIS_CLEARANCE + numChildren*(CHILD_BAR_HEIGHT+CHILD_BAR_GAP) adds an
+  // extra BAR_GAP of breathing room between the context bar and the top child bar.
+  const stackHeight = CHILD_AXIS_CLEARANCE + Math.max(numChildren, 0) * (CHILD_BAR_HEIGHT + CHILD_BAR_GAP);
   const y = Math.max(4, axisY - stackHeight - SELF_BAR_GAP - SELF_BAR_HEIGHT);
 
   const fill = color ?? '#94a3b8';
