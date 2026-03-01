@@ -12,17 +12,21 @@ interface Props {
   width: number;
   level: number;
   color?: string;
+  isHovered?: boolean;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
 }
 
 export const SUPER_CARD_W = 170;
+export const STEM_BASE = 18;
+export const LEVEL_STEP = 100; // gap between levels (accommodates label row)
+export const MARKER_R = 5;
+
 const CARD_R = 6;
-const MARKER_R = 5;
-const STEM_BASE = 18;
-export const LEVEL_STEP = 82; // tall enough for 2-line title cards + margin
 const PAD = 8;
-const LINE_H = 16; // px between title line baselines
-const CHARS_PER_LINE = 22; // approx fit in 154px content width at 12px font
+const LINE_H = 16;
+const CHARS_PER_LINE = 22;
+const LABEL_H = 14; // height reserved for the event-type label row
 
 // Word-wrap: splits title into lines of at most CHARS_PER_LINE characters
 function wrapText(text: string, maxChars: number): string[] {
@@ -44,6 +48,14 @@ function wrapText(text: string, maxChars: number): string[] {
   return lines;
 }
 
+function typeLabel(eventType: string): string {
+  switch (eventType) {
+    case 'key_moment': return '★ momento chiave';
+    case 'incident':   return '◆ incidente';
+    default:           return '· evento';
+  }
+}
+
 export default function SuperEventMarker({
   event,
   viewportStart,
@@ -52,7 +64,9 @@ export default function SuperEventMarker({
   width,
   level,
   color: colorProp,
+  isHovered,
   onSelect,
+  onHover,
 }: Props) {
   const frac = eventToFractionalYear(event);
   const x = yearToPixel(frac, viewportStart, pixelsPerYear);
@@ -64,38 +78,28 @@ export default function SuperEventMarker({
 
   const titleLines = wrapText(event.title, CHARS_PER_LINE);
   const titleBlockH = titleLines.length * LINE_H;
-  // card height: top-pad(12) + title block + gap(4) + date line(14) + bottom-pad(8)
-  const cardH = 12 + titleBlockH + 4 + 14 + 8;
+  // card height: label-row(14) + top-pad(12) + title block + gap(4) + date(14) + bottom-pad(8)
+  const cardH = LABEL_H + 12 + titleBlockH + 4 + 14 + 8;
 
-  // Clamp card horizontally so it stays within the viewport
   const cardX = Math.max(4, Math.min(x - SUPER_CARD_W / 2, width - SUPER_CARD_W - 4));
   const cardY = stemEnd + MARKER_R + 5;
 
   const date = formatTimelineDate(event.year, event.month, event.day);
+  const label = typeLabel(event.eventType);
 
   return (
     <g
       className="cursor-pointer"
       onClick={() => onSelect(event.id)}
+      onMouseEnter={() => onHover(event.id)}
+      onMouseLeave={() => onHover(null)}
       role="button"
       aria-label={`${event.title} — ${date}`}
       style={{ pointerEvents: 'auto' }}
     >
       <title>{`${event.title} — ${date}`}</title>
 
-      {/* Stem from axis down to marker */}
-      <line
-        x1={x} y1={axisY}
-        x2={x} y2={stemEnd}
-        stroke={color}
-        strokeWidth={1.5}
-        strokeOpacity={0.4}
-      />
-
-      {/* Axis tick dot */}
-      <circle cx={x} cy={axisY} r={3} fill={color} opacity={0.8} />
-
-      {/* Marker circle at stem end */}
+      {/* Marker circle at stem end (above all stems — rendered in card layer) */}
       <circle cx={x} cy={stemEnd} r={MARKER_R} fill={color} stroke="white" strokeWidth={1.5} />
 
       {/* Card background */}
@@ -107,24 +111,42 @@ export default function SuperEventMarker({
         rx={CARD_R}
         fill="white"
         stroke={color}
-        strokeWidth={1}
-        strokeOpacity={0.3}
-        style={{ filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))' }}
+        strokeWidth={isHovered ? 1.5 : 1}
+        strokeOpacity={isHovered ? 0.7 : 0.3}
+        style={{
+          filter: isHovered
+            ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.18))'
+            : 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))',
+        }}
       />
 
       {/* Hit area covering card */}
       <rect x={cardX} y={cardY} width={SUPER_CARD_W} height={cardH} fill="transparent" />
+
+      {/* Event type label */}
+      <text
+        x={cardX + PAD}
+        y={cardY + LABEL_H - 2}
+        fontSize={10}
+        fill={color}
+        opacity={0.75}
+        fontFamily="ui-sans-serif, sans-serif"
+        style={{ pointerEvents: 'none' }}
+      >
+        {label}
+      </text>
 
       {/* Title — one <text> per wrapped line */}
       {titleLines.map((line, i) => (
         <text
           key={i}
           x={cardX + PAD}
-          y={cardY + 12 + (i + 1) * LINE_H}
+          y={cardY + LABEL_H + 12 + (i + 1) * LINE_H}
           fontSize={12}
           fontWeight="600"
           fill="#111827"
           fontFamily="ui-sans-serif, sans-serif"
+          style={{ pointerEvents: 'none' }}
         >
           {line}
         </text>
@@ -133,10 +155,11 @@ export default function SuperEventMarker({
       {/* Date */}
       <text
         x={cardX + PAD}
-        y={cardY + 12 + titleBlockH + 4 + 14}
+        y={cardY + LABEL_H + 12 + titleBlockH + 4 + 14}
         fontSize={11}
         fill={color}
         fontFamily="ui-sans-serif, sans-serif"
+        style={{ pointerEvents: 'none' }}
       >
         {date}
       </text>

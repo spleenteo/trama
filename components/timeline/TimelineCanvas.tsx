@@ -15,6 +15,7 @@ import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
 import SuperEventMarker, { SUPER_CARD_W } from '@/components/timeline/SuperEventMarker';
+import SuperEventStem from '@/components/timeline/SuperEventStem';
 
 interface Props {
   context: ContextTree;
@@ -73,6 +74,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
 
   const [viewportStart, setViewportStart] = useState<number>(0);
   const [pixelsPerYear, setPixelsPerYear] = useState<number>(1);
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
   const vpRef = useRef(viewportStart);
   const ppyRef = useRef(pixelsPerYear);
@@ -257,6 +259,22 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
 
   const contextColor = context.color?.hex ?? '#6b7280';
 
+  // Combined entries (event + resolved color) for two-pass rendering
+  type PointEntry = { ev: EventSummary; color: string | undefined };
+  const allPointEntries: PointEntry[] = [
+    ...pointSingles.map((ev) => ({ ev, color: contextColor })),
+    ...superChildEvents.map((ev) => ({ ev, color: ev.sourceContextColor ?? undefined })),
+    ...mainChildEvents.map((ev) => ({ ev, color: ev.sourceContextColor ?? undefined })),
+  ];
+
+  // Card layer: render hovered event last so it appears on top in SVG
+  const cardEntries = hoveredEventId
+    ? [
+        ...allPointEntries.filter((e) => e.ev.id !== hoveredEventId),
+        ...allPointEntries.filter((e) => e.ev.id === hoveredEventId),
+      ]
+    : allPointEntries;
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       <ContextDetailHeader
@@ -332,50 +350,40 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               />
             ))}
 
-            {/* Point events (own context) — staggered cards */}
-            {pointSingles.map((ev) => (
-              <SuperEventMarker
-                key={ev.id}
-                event={ev}
-                color={contextColor}
-                viewportStart={viewportStart}
-                pixelsPerYear={pixelsPerYear}
-                axisY={axisY}
-                width={width}
-                level={pointLevels.get(ev.id) ?? 0}
-                onSelect={setSelectedEvent}
-              />
-            ))}
+            {/* Layer 1 — stems: rendered first so they're always behind cards */}
+            <g>
+              {allPointEntries.map(({ ev, color }) => (
+                <SuperEventStem
+                  key={`stem-${ev.id}`}
+                  event={ev}
+                  color={color}
+                  viewportStart={viewportStart}
+                  pixelsPerYear={pixelsPerYear}
+                  axisY={axisY}
+                  width={width}
+                  level={pointLevels.get(ev.id) ?? 0}
+                />
+              ))}
+            </g>
 
-            {/* Super child events — staggered cards */}
-            {superChildEvents.map((ev) => (
-              <SuperEventMarker
-                key={`child-super-${ev.id}`}
-                event={ev}
-                color={ev.sourceContextColor ?? undefined}
-                viewportStart={viewportStart}
-                pixelsPerYear={pixelsPerYear}
-                axisY={axisY}
-                width={width}
-                level={pointLevels.get(ev.id) ?? 0}
-                onSelect={setSelectedEvent}
-              />
-            ))}
-
-            {/* Main child events — staggered cards */}
-            {mainChildEvents.map((ev) => (
-              <SuperEventMarker
-                key={`child-main-${ev.id}`}
-                event={ev}
-                color={ev.sourceContextColor ?? undefined}
-                viewportStart={viewportStart}
-                pixelsPerYear={pixelsPerYear}
-                axisY={axisY}
-                width={width}
-                level={pointLevels.get(ev.id) ?? 0}
-                onSelect={setSelectedEvent}
-              />
-            ))}
+            {/* Layer 2 — cards: hovered event rendered last → on top in SVG */}
+            <g>
+              {cardEntries.map(({ ev, color }) => (
+                <SuperEventMarker
+                  key={ev.id}
+                  event={ev}
+                  color={color}
+                  viewportStart={viewportStart}
+                  pixelsPerYear={pixelsPerYear}
+                  axisY={axisY}
+                  width={width}
+                  level={pointLevels.get(ev.id) ?? 0}
+                  isHovered={hoveredEventId === ev.id}
+                  onSelect={setSelectedEvent}
+                  onHover={setHoveredEventId}
+                />
+              ))}
+            </g>
           </svg>
         )}
 
