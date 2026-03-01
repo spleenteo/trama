@@ -28,13 +28,14 @@ export default function ZoomControls({ onZoomIn, onZoomOut, onFitToView }: Props
       <button
         onClick={onFitToView}
         className="w-8 h-8 flex items-center justify-center text-stone-500 hover:bg-stone-100 rounded-lg transition-colors"
-        title="Adatta alla vista"
+        title="Mostra tutto"
       >
         <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-          <rect x="2" y="2" width="5" height="5" rx="0.5" />
-          <rect x="9" y="2" width="5" height="5" rx="0.5" />
-          <rect x="2" y="9" width="5" height="5" rx="0.5" />
-          <rect x="9" y="9" width="5" height="5" rx="0.5" />
+          {/* Arrows pointing outward — expand/fit-all icon */}
+          <path d="M2 6V2h4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 6V2h-4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M2 10v4h4" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M14 10v4h-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
     </div>

@@ -15,7 +15,8 @@ export function eventToFractionalYear(event: {
 export function computeTimelineRange(
   events: EventSummary[],
   softStart?: number | null,
-  softEnd?: number | null
+  softEnd?: number | null,
+  children?: { softStartYear?: number | null; softEndYear?: number | null }[]
 ): { minYear: number; maxYear: number } {
   const years = events.flatMap((e) => {
     const start = eventToFractionalYear(e);
@@ -23,17 +24,24 @@ export function computeTimelineRange(
     return [start, end];
   });
 
+  const childYears = (children ?? []).flatMap((c) => {
+    const pts: number[] = [];
+    if (c.softStartYear != null) pts.push(c.softStartYear);
+    if (c.softEndYear != null) pts.push(c.softEndYear);
+    return pts;
+  });
+
   const currentYear = new Date().getFullYear();
 
-  if (years.length === 0) {
+  if (years.length === 0 && childYears.length === 0) {
     const min = softStart ?? currentYear - 10;
     const max = softEnd ?? currentYear;
     return { minYear: min, maxYear: max };
   }
 
   return {
-    minYear: Math.min(...years, ...(softStart != null ? [softStart] : [])),
-    maxYear: Math.max(...years, ...(softEnd != null ? [softEnd] : [currentYear])),
+    minYear: Math.min(...years, ...childYears, ...(softStart != null ? [softStart] : [])),
+    maxYear: Math.max(...years, ...childYears, ...(softEnd != null ? [softEnd] : [currentYear])),
   };
 }
 
