@@ -40,7 +40,7 @@ export default function EventCluster({ cluster, viewportStart, pixelsPerYear, ax
         x={x}
         y={cy + 5}
         textAnchor="middle"
-        fontSize={12}
+        fontSize={14}
         fontWeight="600"
         fill="#374151"
         fontFamily="ui-sans-serif, sans-serif"

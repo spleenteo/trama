@@ -17,16 +17,17 @@ interface Props {
   axisY: number;
 }
 
-const BAR_HEIGHT = 16;
+const BAR_HEIGHT = 20;
 const BAR_GAP = 8;
 
 export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY }: Props) {
   const router = useRouter();
 
+  // Require both a start AND an end — never fall back to "present" for concluded contexts
   const visible = children.filter((c) => {
     const start = c.computedMin ?? c.softStartYear;
     const end = c.computedMax ?? c.softEndYear;
-    return start != null || end != null;
+    return start != null && end != null;
   });
 
   if (visible.length === 0) return null;
@@ -35,7 +36,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
     <g>
       {visible.map((child, i) => {
         const start = child.computedMin ?? child.softStartYear!;
-        const end = child.computedMax ?? child.softEndYear ?? new Date().getFullYear();
+        const end = child.computedMax ?? child.softEndYear!;
         const x1 = Math.max(0, yearToPixel(start, viewportStart, pixelsPerYear));
         const x2 = Math.min(width, yearToPixel(end, viewportStart, pixelsPerYear));
         const barWidth = Math.max(4, x2 - x1);
@@ -63,11 +64,11 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               opacity={0.65}
             />
             {/* Label — only if bar is wide enough */}
-            {barWidth > 50 && (
+            {barWidth > 60 && (
               <text
-                x={x1 + 10}
-                y={y + BAR_HEIGHT / 2 + 4}
-                fontSize={11}
+                x={x1 + 12}
+                y={y + BAR_HEIGHT / 2 + 5}
+                fontSize={13}
                 fill="white"
                 fontWeight="600"
                 fontFamily="ui-sans-serif, sans-serif"

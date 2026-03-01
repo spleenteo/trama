@@ -90,6 +90,7 @@ async function main() {
     parent_id: rootId,
     color: hex("#475569"),
     soft_start_year: 1800,
+    soft_end_year: 1861,
     is_concluded: true,
     featured_image: img(imgViennaMap),
     description: dast(
@@ -176,6 +177,7 @@ async function main() {
     parent_id: rootId,
     color: hex("#0891B2"),
     soft_start_year: 1807,
+    soft_end_year: 1833,
     is_concluded: true,
     featured_image: img(imgGaribaldi),
     description: dast(
@@ -262,6 +264,7 @@ async function main() {
     parent_id: rootId,
     color: hex("#16A34A"),
     soft_start_year: 1836,
+    soft_end_year: 1848,
     is_concluded: true,
     featured_image: img(imgAnita),
     description: dast(
@@ -351,6 +354,7 @@ async function main() {
     parent_id: rootId,
     color: hex("#DC2626"),
     soft_start_year: 1848,
+    soft_end_year: 1861,
     is_concluded: true,
     featured_image: img(imgPartenzaQuarto),
     description: dast(
@@ -443,6 +447,7 @@ async function main() {
     parent_id: rootId,
     color: hex("#B45309"),
     soft_start_year: 1861,
+    soft_end_year: 1882,
     is_concluded: true,
     featured_image: img(imgGaribaldi),
     description: dast(
