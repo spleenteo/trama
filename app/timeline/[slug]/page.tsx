@@ -6,6 +6,7 @@ import {
   EVENTS_BY_CONTEXT_QUERY,
 } from '@/lib/datocms/queries';
 import type { ContextTree as ContextTreeType, EventSummary } from '@/lib/types';
+import { extractChildEvents } from '@/lib/timeline/child-events';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import ContextTreeSidebar from '@/components/sidebar/ContextTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -42,6 +43,8 @@ export default async function TimelinePage({ params, searchParams }: Props) {
     performRequest<EventsResult>(EVENTS_BY_CONTEXT_QUERY, { contextId: context.id }),
   ]);
 
+  const childEvents = extractChildEvents(context.children);
+
   return (
     <div className="flex flex-col h-screen bg-stone-50 overflow-hidden">
       {/* Top nav */}
@@ -76,6 +79,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
           <TimelineCanvas
             context={context}
             events={allEvents}
+            childEvents={childEvents}
             initialEventSlug={eventSlug}
           />
           <EventDetailPanel />

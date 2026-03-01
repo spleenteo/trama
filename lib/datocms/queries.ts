@@ -1,4 +1,4 @@
-import { IMAGE_FIELDS_FRAGMENT } from './fragments';
+import { IMAGE_FIELDS_FRAGMENT, EVENT_SUMMARY_FIELDS_FRAGMENT } from './fragments';
 
 export const ALL_ROOT_CONTEXTS_QUERY = /* GraphQL */ `
   query AllRootContexts {
@@ -21,9 +21,17 @@ export const ALL_ROOT_CONTEXTS_QUERY = /* GraphQL */ `
         slug
         color { hex }
       }
+      _allReferencingEvents(
+        filter: { visibility: { eq: "super" } }
+        orderBy: year_ASC
+        first: 100
+      ) {
+        ...eventSummaryFields
+      }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
+  ${EVENT_SUMMARY_FIELDS_FRAGMENT}
 `;
 
 export const CONTEXT_TREE_QUERY = /* GraphQL */ `
@@ -92,10 +100,18 @@ export const CONTEXT_BY_SLUG_QUERY = /* GraphQL */ `
         softStartYear
         softEndYear
         isConcluded
+        _allReferencingEvents(
+          filter: { visibility: { in: ["super", "main"] } }
+          orderBy: year_ASC
+          first: 200
+        ) {
+          ...eventSummaryFields
+        }
       }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
+  ${EVENT_SUMMARY_FIELDS_FRAGMENT}
 `;
 
 export const EVENTS_BY_CONTEXT_QUERY = /* GraphQL */ `

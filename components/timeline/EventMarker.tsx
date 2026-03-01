@@ -11,6 +11,7 @@ interface Props {
   canvasHeight: number;
   axisY: number;
   onSelect: (id: string) => void;
+  color?: string;
 }
 
 const MARKER_RADIUS = 5;
@@ -46,8 +47,9 @@ export default function EventMarker({
   canvasHeight,
   axisY,
   onSelect,
+  color: colorProp,
 }: Props) {
-  const color = '#6b7280'; // default — context colour injected in V5
+  const color = colorProp ?? '#6b7280';
   const startFrac = eventToFractionalYear(event);
   const x = yearToPixel(startFrac, viewportStart, pixelsPerYear);
 
