@@ -90,13 +90,13 @@ export default function EventMarker({
         {/* Label */}
         <text
           x={x + barWidth / 2}
-          y={barY + BAR_HEIGHT + 11}
+          y={barY + BAR_HEIGHT + 13}
           textAnchor="middle"
-          fontSize={9}
+          fontSize={11}
           fill="#374151"
           fontFamily="ui-sans-serif, sans-serif"
         >
-          {event.title.length > 20 ? event.title.slice(0, 18) + '…' : event.title}
+          {event.title.length > 24 ? event.title.slice(0, 22) + '…' : event.title}
         </text>
       </g>
     );
@@ -121,13 +121,13 @@ export default function EventMarker({
       {/* Label */}
       <text
         x={x}
-        y={shapeY + MARKER_RADIUS + 12}
+        y={shapeY + MARKER_RADIUS + 14}
         textAnchor="middle"
-        fontSize={9}
+        fontSize={11}
         fill="#374151"
         fontFamily="ui-sans-serif, sans-serif"
       >
-        {event.title.length > 18 ? event.title.slice(0, 16) + '…' : event.title}
+        {event.title.length > 22 ? event.title.slice(0, 20) + '…' : event.title}
       </text>
     </g>
   );

@@ -47,7 +47,7 @@ function AxisContent({
           <text
             y={axisY - TICK_MAJOR - 4}
             textAnchor="middle"
-            fontSize={10}
+            fontSize={11}
             fill="#6b7280"
             fontFamily="ui-monospace, monospace"
           >
