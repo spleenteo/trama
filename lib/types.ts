@@ -91,6 +91,11 @@ export interface EventSummary {
   }>;
 }
 
+export interface ChildEvent extends EventSummary {
+  sourceContextId: string;
+  sourceContextColor: string | null;
+}
+
 export interface EventDetail extends EventSummary {
   description: object | null; // DAST value
   media: FileField[];

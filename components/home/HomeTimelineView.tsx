@@ -1,6 +1,7 @@
 'use client';
 
 import type { ContextCard, ContextTree } from '@/lib/types';
+import { extractChildEvents } from '@/lib/timeline/child-events';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 
 interface Props {
@@ -34,11 +35,14 @@ function buildUniverseContext(roots: ContextCard[]): ContextTree {
 }
 
 export default function HomeTimelineView({ contexts }: Props) {
+  const childEvents = extractChildEvents(contexts);
+
   return (
     <div className="h-[60vh] min-h-[400px] border border-stone-200 rounded-2xl overflow-hidden bg-white">
       <TimelineCanvas
         context={buildUniverseContext(contexts)}
         events={[]}
+        childEvents={childEvents}
         showContextBar={false}
       />
     </div>

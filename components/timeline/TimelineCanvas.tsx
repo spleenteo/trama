@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { animate } from 'framer-motion';
-import type { ContextTree, EventSummary } from '@/lib/types';
+import type { ChildEvent, ContextTree, EventSummary } from '@/lib/types';
 import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
 import { computeTimelineRange, eventToFractionalYear } from '@/lib/timeline/date-utils';
 import { getVisibleEvents } from '@/lib/timeline/visibility';
@@ -18,6 +18,7 @@ import TimelineBar from '@/components/timeline/TimelineBar';
 interface Props {
   context: ContextTree;
   events: EventSummary[];
+  childEvents?: ChildEvent[];
   initialEventSlug?: string;
   showContextBar?: boolean;
 }
@@ -27,7 +28,7 @@ const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scro
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
 
-export default function TimelineCanvas({ context, events, initialEventSlug, showContextBar = true }: Props) {
+export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
@@ -205,6 +206,11 @@ export default function TimelineCanvas({ context, events, initialEventSlug, show
   const visible = getVisibleEvents(events, pixelsPerYear);
   const { singles, clusters } = clusterEvents(visible, viewportStart, pixelsPerYear);
 
+  const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super');
+  // mainChildEvents rendered as DotMarker in V3
+  const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
+  void mainChildEvents; // used in V3
+
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
       <ContextDetailHeader
@@ -276,6 +282,20 @@ export default function TimelineCanvas({ context, events, initialEventSlug, show
                 pixelsPerYear={pixelsPerYear}
                 axisY={axisY}
                 onZoom={zoomToCluster}
+              />
+            ))}
+
+            {/* Super events from child contexts */}
+            {superChildEvents.map((ev) => (
+              <EventMarker
+                key={`child-super-${ev.id}`}
+                event={ev}
+                color={ev.sourceContextColor ?? undefined}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                canvasHeight={canvasHeight}
+                axisY={axisY}
+                onSelect={setSelectedEvent}
               />
             ))}
           </svg>
