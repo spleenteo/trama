@@ -18,7 +18,8 @@ interface Props {
 }
 
 const BAR_HEIGHT = 20;
-const BAR_GAP = 8;
+const BAR_GAP = 16;        // gap between consecutive bars
+const AXIS_CLEARANCE = 40; // gap from axis line to bottom of first (lowest) bar
 
 export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY }: Props) {
   const router = useRouter();
@@ -44,8 +45,9 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         const x1 = Math.max(0, yearToPixel(start, viewportStart, pixelsPerYear));
         const x2 = Math.min(width, yearToPixel(end, viewportStart, pixelsPerYear));
         const barWidth = Math.max(4, x2 - x1);
-        // Bars grow upward: bar 1 is nearest to axis, bar N is furthest up
-        const y = axisY - (i + 1) * (BAR_HEIGHT + BAR_GAP);
+        // Bars grow upward: bar 0 is lowest (nearest to axis), bar N is furthest up.
+        // AXIS_CLEARANCE keeps the first bar above the year labels.
+        const y = axisY - AXIS_CLEARANCE - BAR_HEIGHT - i * (BAR_HEIGHT + BAR_GAP);
         const color = child.color?.hex ?? '#9ca3af';
 
         return (
