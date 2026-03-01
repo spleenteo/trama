@@ -7,11 +7,11 @@ interface Props {
   pixelsPerYear: number;
   width: number;
   height?: number;
+  axisY: number;
   /** When true, renders a <g> instead of a standalone <svg> (for composing into a parent SVG) */
   asSvgGroup?: boolean;
 }
 
-const AXIS_Y = 48;
 const TICK_MAJOR = 12;
 const TICK_MINOR = 6;
 const CURRENT_YEAR = new Date().getFullYear();
@@ -21,6 +21,7 @@ function AxisContent({
   pixelsPerYear,
   width,
   height = 80,
+  axisY,
 }: Omit<Props, 'asSvgGroup'>) {
   if (width <= 0) return null;
 
@@ -33,18 +34,18 @@ function AxisContent({
   return (
     <>
       {/* Main axis line */}
-      <line x1={0} y1={AXIS_Y} x2={width} y2={AXIS_Y} stroke="#d1d5db" strokeWidth={1} />
+      <line x1={0} y1={axisY} x2={width} y2={axisY} stroke="#d1d5db" strokeWidth={1} />
 
       {/* Labels + ticks */}
       {labels.map((lbl) => (
         <g key={lbl.year} transform={`translate(${lbl.x}, 0)`}>
           <line
-            x1={0} y1={AXIS_Y - TICK_MAJOR}
-            x2={0} y2={AXIS_Y + TICK_MINOR}
+            x1={0} y1={axisY - TICK_MAJOR}
+            x2={0} y2={axisY + TICK_MINOR}
             stroke="#9ca3af" strokeWidth={1}
           />
           <text
-            y={AXIS_Y - TICK_MAJOR - 4}
+            y={axisY - TICK_MAJOR - 4}
             textAnchor="middle"
             fontSize={10}
             fill="#6b7280"
@@ -64,7 +65,7 @@ function AxisContent({
             strokeDasharray="4 3" opacity={0.7}
           />
           <text
-            y={AXIS_Y + TICK_MINOR + 14}
+            y={axisY + TICK_MINOR + 14}
             textAnchor="middle"
             fontSize={9}
             fill="#10b981"

@@ -13,17 +13,18 @@ interface Props {
   cluster: Cluster;
   viewportStart: number;
   pixelsPerYear: number;
+  axisY: number;
   onZoom: (cluster: Cluster) => void;
 }
 
-const AXIS_Y = 48;
-
-export default function EventCluster({ cluster, viewportStart, pixelsPerYear, onZoom }: Props) {
+export default function EventCluster({ cluster, viewportStart, pixelsPerYear, axisY, onZoom }: Props) {
   const x = yearToPixel(cluster.representativeYear, viewportStart, pixelsPerYear);
   if (x < -60 || x > 10000) return null;
 
   const count = cluster.events.length;
   const r = Math.min(22, 12 + Math.log2(count) * 3);
+  // Cluster sits below the axis with a small gap
+  const cy = axisY + r + 4;
 
   return (
     <g
@@ -33,11 +34,11 @@ export default function EventCluster({ cluster, viewportStart, pixelsPerYear, on
       aria-label={`${count} eventi raggruppati`}
     >
       <title>{`${count} eventi — clicca per ingrandire`}</title>
-      <circle cx={x} cy={AXIS_Y} r={r + 4} fill="transparent" />
-      <circle cx={x} cy={AXIS_Y} r={r} fill="#f3f4f6" stroke="#9ca3af" strokeWidth={1.5} />
+      <circle cx={x} cy={cy} r={r + 4} fill="transparent" />
+      <circle cx={x} cy={cy} r={r} fill="#f3f4f6" stroke="#9ca3af" strokeWidth={1.5} />
       <text
         x={x}
-        y={AXIS_Y + 4}
+        y={cy + 4}
         textAnchor="middle"
         fontSize={10}
         fontWeight="600"

@@ -21,6 +21,7 @@ interface Props {
 }
 
 const ZOOM_FACTOR = 1.4;
+const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scroll
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
 
@@ -44,8 +45,11 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
   const { minYear, maxYear } = computeTimelineRange(
     events,
     context.softStartYear,
-    context.softEndYear
+    context.softEndYear,
+    context.children
   );
+
+  const axisY = canvasHeight > 0 ? canvasHeight / 2 : 48;
 
   // ─── Fit to view ──────────────────────────────────────────────────────────
   const fitToView = useCallback(
@@ -115,7 +119,8 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
       const rect = el.getBoundingClientRect();
       const cursorX = e.clientX - rect.left;
       const cursorYear = pixelToYear(cursorX, vpRef.current, ppyRef.current);
-      const delta = e.deltaY < 0 ? ZOOM_FACTOR : 1 / ZOOM_FACTOR;
+      // Proportional zoom: small deltaY = small step (smooth trackpad), large deltaY = bigger step (mouse)
+      const delta = Math.pow(WHEEL_BASE, -e.deltaY);
       const newPPY = Math.min(MAX_PPY, Math.max(MIN_PPY, ppyRef.current * delta));
       setPixelsPerYear(newPPY);
       setViewportStart(cursorYear - cursorX / newPPY);
@@ -132,6 +137,8 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
     let lastX = 0;
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      // Don't start drag when clicking on interactive controls (buttons etc.)
+      if ((e.target as HTMLElement).closest('button')) return;
       dragging = true;
       lastX = e.clientX;
       el.setPointerCapture(e.pointerId);
@@ -220,18 +227,20 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
               pixelsPerYear={pixelsPerYear}
               width={width}
               height={canvasHeight}
+              axisY={axisY}
               asSvgGroup
             />
 
-            {/* Sub-timeline bars */}
+            {/* Sub-timeline bars — above axis */}
             <SubTimelineBars
               children={context.children}
               viewportStart={viewportStart}
               pixelsPerYear={pixelsPerYear}
               width={width}
+              axisY={axisY}
             />
 
-            {/* Events */}
+            {/* Events — below axis */}
             {singles.map((ev) => (
               <EventMarker
                 key={ev.id}
@@ -239,6 +248,7 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
                 viewportStart={viewportStart}
                 pixelsPerYear={pixelsPerYear}
                 canvasHeight={canvasHeight}
+                axisY={axisY}
                 onSelect={setSelectedEvent}
               />
             ))}
@@ -249,6 +259,7 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
                 cluster={cl}
                 viewportStart={viewportStart}
                 pixelsPerYear={pixelsPerYear}
+                axisY={axisY}
                 onZoom={zoomToCluster}
               />
             ))}

@@ -9,12 +9,13 @@ interface Props {
   viewportStart: number;
   pixelsPerYear: number;
   canvasHeight: number;
+  axisY: number;
   onSelect: (id: string) => void;
 }
 
-const AXIS_Y = 48;
 const MARKER_RADIUS = 5;
 const BAR_HEIGHT = 10;
+const STEM_LENGTH = 28;
 
 // Shape by event type
 function markerShape(type: string, x: number, y: number, r: number, color: string) {
@@ -43,6 +44,7 @@ export default function EventMarker({
   viewportStart,
   pixelsPerYear,
   canvasHeight,
+  axisY,
   onSelect,
 }: Props) {
   const color = '#6b7280'; // default — context colour injected in V5
@@ -62,6 +64,8 @@ export default function EventMarker({
     });
     const x2 = yearToPixel(endFrac, viewportStart, pixelsPerYear);
     const barWidth = Math.max(4, x2 - x);
+    // Range bars sit just below the axis
+    const barY = axisY + 6;
 
     return (
       <g
@@ -72,11 +76,11 @@ export default function EventMarker({
       >
         <title>{`${event.title} — ${formatTimelineDate(event.year, event.month, event.day)}`}</title>
         {/* Hover target */}
-        <rect x={x} y={AXIS_Y - BAR_HEIGHT / 2 - 8} width={barWidth} height={BAR_HEIGHT + 16} fill="transparent" />
+        <rect x={x} y={barY - 4} width={barWidth} height={BAR_HEIGHT + 16} fill="transparent" />
         {/* Bar */}
         <rect
           x={x}
-          y={AXIS_Y - BAR_HEIGHT / 2}
+          y={barY}
           width={barWidth}
           height={BAR_HEIGHT}
           rx={BAR_HEIGHT / 2}
@@ -86,7 +90,7 @@ export default function EventMarker({
         {/* Label */}
         <text
           x={x + barWidth / 2}
-          y={AXIS_Y - BAR_HEIGHT / 2 - 5}
+          y={barY + BAR_HEIGHT + 11}
           textAnchor="middle"
           fontSize={9}
           fill="#374151"
@@ -98,7 +102,8 @@ export default function EventMarker({
     );
   }
 
-  // Point event
+  // Point event — stem goes DOWN from axis
+  const shapeY = axisY + STEM_LENGTH;
   return (
     <g
       className="cursor-pointer"
@@ -108,15 +113,15 @@ export default function EventMarker({
     >
       <title>{`${event.title} — ${formatTimelineDate(event.year, event.month, event.day)}`}</title>
       {/* Hit area */}
-      <circle cx={x} cy={AXIS_Y} r={MARKER_RADIUS + 8} fill="transparent" />
+      <circle cx={x} cy={axisY} r={MARKER_RADIUS + 8} fill="transparent" />
       {/* Stem */}
-      <line x1={x} y1={AXIS_Y} x2={x} y2={AXIS_Y - 28} stroke="#d1d5db" strokeWidth={1} />
+      <line x1={x} y1={axisY} x2={x} y2={shapeY} stroke="#d1d5db" strokeWidth={1} />
       {/* Shape */}
-      {markerShape(event.eventType, x, AXIS_Y - 28, MARKER_RADIUS, '#6b7280')}
+      {markerShape(event.eventType, x, shapeY, MARKER_RADIUS, '#6b7280')}
       {/* Label */}
       <text
         x={x}
-        y={AXIS_Y - 28 - MARKER_RADIUS - 4}
+        y={shapeY + MARKER_RADIUS + 12}
         textAnchor="middle"
         fontSize={9}
         fill="#374151"

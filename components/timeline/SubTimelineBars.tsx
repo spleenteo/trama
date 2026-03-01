@@ -14,13 +14,13 @@ interface Props {
   viewportStart: number;
   pixelsPerYear: number;
   width: number;
+  axisY: number;
 }
 
 const BAR_HEIGHT = 14;
 const BAR_GAP = 6;
-const SUB_Y_OFFSET = 72; // below the axis (AXIS_Y=48 + some space)
 
-export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width }: Props) {
+export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY }: Props) {
   const router = useRouter();
 
   const visible = children.filter((c) => {
@@ -39,7 +39,8 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         const x1 = Math.max(0, yearToPixel(start, viewportStart, pixelsPerYear));
         const x2 = Math.min(width, yearToPixel(end, viewportStart, pixelsPerYear));
         const barWidth = Math.max(4, x2 - x1);
-        const y = SUB_Y_OFFSET + i * (BAR_HEIGHT + BAR_GAP);
+        // Bars grow upward: bar 1 is nearest to axis, bar N is furthest up
+        const y = axisY - (i + 1) * (BAR_HEIGHT + BAR_GAP);
         const color = child.color?.hex ?? '#9ca3af';
 
         return (
