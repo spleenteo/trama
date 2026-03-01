@@ -17,8 +17,8 @@ interface Props {
   axisY: number;
 }
 
-const BAR_HEIGHT = 14;
-const BAR_GAP = 6;
+const BAR_HEIGHT = 16;
+const BAR_GAP = 8;
 
 export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY }: Props) {
   const router = useRouter();
@@ -63,17 +63,17 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               opacity={0.65}
             />
             {/* Label — only if bar is wide enough */}
-            {barWidth > 40 && (
+            {barWidth > 50 && (
               <text
-                x={x1 + 6}
+                x={x1 + 10}
                 y={y + BAR_HEIGHT / 2 + 4}
-                fontSize={9}
+                fontSize={11}
                 fill="white"
                 fontWeight="600"
                 fontFamily="ui-sans-serif, sans-serif"
                 style={{ pointerEvents: 'none' }}
               >
-                {child.title.length > 22 ? child.title.slice(0, 20) + '…' : child.title}
+                {child.title.length > 28 ? child.title.slice(0, 26) + '…' : child.title}
               </text>
             )}
           </g>

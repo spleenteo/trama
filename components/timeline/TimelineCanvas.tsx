@@ -13,6 +13,7 @@ import ZoomControls from '@/components/timeline/ZoomControls';
 import EventMarker from '@/components/timeline/EventMarker';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
+import TimelineBar from '@/components/timeline/TimelineBar';
 
 interface Props {
   context: ContextTree;
@@ -229,6 +230,19 @@ export default function TimelineCanvas({ context, events, initialEventSlug }: Pr
               height={canvasHeight}
               axisY={axisY}
               asSvgGroup
+            />
+
+            {/* Current context bar — above child bars */}
+            <TimelineBar
+              title={context.title}
+              color={context.color?.hex ?? null}
+              minYear={minYear}
+              maxYear={maxYear}
+              numChildren={context.children.length}
+              viewportStart={viewportStart}
+              pixelsPerYear={pixelsPerYear}
+              axisY={axisY}
+              width={width}
             />
 
             {/* Sub-timeline bars — above axis */}

@@ -38,9 +38,9 @@ export default function EventCluster({ cluster, viewportStart, pixelsPerYear, ax
       <circle cx={x} cy={cy} r={r} fill="#f3f4f6" stroke="#9ca3af" strokeWidth={1.5} />
       <text
         x={x}
-        y={cy + 4}
+        y={cy + 5}
         textAnchor="middle"
-        fontSize={10}
+        fontSize={12}
         fontWeight="600"
         fill="#374151"
         fontFamily="ui-sans-serif, sans-serif"
