@@ -92,7 +92,7 @@ export default function TimelineBar({
         <text
           x={titleX}
           y={y + SELF_BAR_HEIGHT / 2 + 4}
-          fontSize={12}
+          fontSize={14}
           fontWeight="700"
           fill={fill}
           opacity={0.9}
@@ -108,7 +108,7 @@ export default function TimelineBar({
           x={dateX}
           y={y + SELF_BAR_HEIGHT / 2 + 4}
           textAnchor="end"
-          fontSize={10}
+          fontSize={12}
           fill={fill}
           opacity={0.75}
           fontFamily="ui-monospace, monospace"

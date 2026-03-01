@@ -92,7 +92,7 @@ export default function EventMarker({
           x={x + barWidth / 2}
           y={barY + BAR_HEIGHT + 13}
           textAnchor="middle"
-          fontSize={11}
+          fontSize={13}
           fill="#374151"
           fontFamily="ui-sans-serif, sans-serif"
         >
@@ -123,7 +123,7 @@ export default function EventMarker({
         x={x}
         y={shapeY + MARKER_RADIUS + 14}
         textAnchor="middle"
-        fontSize={11}
+        fontSize={13}
         fill="#374151"
         fontFamily="ui-sans-serif, sans-serif"
       >
