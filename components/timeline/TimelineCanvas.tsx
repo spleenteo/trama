@@ -14,6 +14,7 @@ import EventMarker from '@/components/timeline/EventMarker';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
+import DotMarker from '@/components/timeline/DotMarker';
 
 interface Props {
   context: ContextTree;
@@ -207,9 +208,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const { singles, clusters } = clusterEvents(visible, viewportStart, pixelsPerYear);
 
   const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super');
-  // mainChildEvents rendered as DotMarker in V3
   const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
-  void mainChildEvents; // used in V3
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
@@ -295,6 +294,19 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
                 pixelsPerYear={pixelsPerYear}
                 canvasHeight={canvasHeight}
                 axisY={axisY}
+                onSelect={setSelectedEvent}
+              />
+            ))}
+
+            {/* Main events from child contexts — compact dot + hover */}
+            {mainChildEvents.map((ev) => (
+              <DotMarker
+                key={`child-main-${ev.id}`}
+                event={ev}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                axisY={axisY}
+                width={width}
                 onSelect={setSelectedEvent}
               />
             ))}
