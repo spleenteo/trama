@@ -23,10 +23,14 @@ const BAR_GAP = 8;
 export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY }: Props) {
   const router = useRouter();
 
-  // Require both a start AND an end — never fall back to "present" for concluded contexts
+  const CURRENT_YEAR = new Date().getFullYear();
+
+  // Show bar if it has a start. For the end: use computed/soft end, or current year
+  // if the context is explicitly ongoing (isConcluded === false). Hide if concluded
+  // but missing an end date (data error).
   const visible = children.filter((c) => {
     const start = c.computedMin ?? c.softStartYear;
-    const end = c.computedMax ?? c.softEndYear;
+    const end = c.computedMax ?? c.softEndYear ?? (c.isConcluded === false ? CURRENT_YEAR : null);
     return start != null && end != null;
   });
 
@@ -36,7 +40,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
     <g>
       {visible.map((child, i) => {
         const start = child.computedMin ?? child.softStartYear!;
-        const end = child.computedMax ?? child.softEndYear!;
+        const end = child.computedMax ?? child.softEndYear ?? CURRENT_YEAR;
         const x1 = Math.max(0, yearToPixel(start, viewportStart, pixelsPerYear));
         const x2 = Math.min(width, yearToPixel(end, viewportStart, pixelsPerYear));
         const barWidth = Math.max(4, x2 - x1);
