@@ -32,6 +32,7 @@ export default function EventCluster({ cluster, viewportStart, pixelsPerYear, ax
       onClick={() => onZoom(cluster)}
       role="button"
       aria-label={`${count} eventi raggruppati`}
+      style={{ pointerEvents: 'auto' }}
     >
       <title>{`${count} eventi — clicca per ingrandire`}</title>
       <circle cx={x} cy={cy} r={r + 4} fill="transparent" />

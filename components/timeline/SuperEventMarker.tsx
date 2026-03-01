@@ -79,6 +79,7 @@ export default function SuperEventMarker({
       onClick={() => onSelect(event.id)}
       role="button"
       aria-label={`${event.title} — ${date}`}
+      style={{ pointerEvents: 'auto' }}
     >
       <title>{`${event.title} — ${date}`}</title>
 

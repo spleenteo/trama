@@ -11,6 +11,7 @@
   "dependencies": {
     "@datocms/cda-client": "^0.2.10",
     "@mux/mux-player-react": "^3.11.5",
+    "@tailwindcss/typography": "^0.5.19",
     "framer-motion": "^12.34.3",
     "next": "16.1.6",
     "react": "19.2.3",

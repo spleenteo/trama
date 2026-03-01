@@ -55,6 +55,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
             onClick={() => router.push(`/timeline/${child.slug}`)}
             role="button"
             aria-label={`Naviga in: ${child.title}`}
+            style={{ pointerEvents: 'auto' }}
           >
             <title>{`${child.title} — clicca per navigare`}</title>
             {/* Hit area */}
