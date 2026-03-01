@@ -45,6 +45,7 @@ export const CONTEXT_TREE_QUERY = /* GraphQL */ `
         color { hex }
         softStartYear
         softEndYear
+        isConcluded
         children {
           id
           title
@@ -52,6 +53,7 @@ export const CONTEXT_TREE_QUERY = /* GraphQL */ `
           color { hex }
           softStartYear
           softEndYear
+          isConcluded
           children {
             id
             title
@@ -89,6 +91,7 @@ export const CONTEXT_BY_SLUG_QUERY = /* GraphQL */ `
         color { hex }
         softStartYear
         softEndYear
+        isConcluded
       }
     }
   }
