@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ContextTree } from '@/lib/types';
+import type { NodeTree } from '@/lib/types';
 import { formatYearRange } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
 
 interface Props {
-  node: ContextTree;
+  node: NodeTree;
   activeSlug: string;
   depth?: number;
 }
 
-export default function ContextTreeItem({ node, activeSlug, depth = 0 }: Props) {
+export default function NodeTreeItem({ node, activeSlug, depth = 0 }: Props) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(depth === 0 || node.slug === activeSlug);
   const hasChildren = node.children.length > 0;
   const isActive = node.slug === activeSlug;
   const accentColor = getAccentColor(node.color);
 
-  const rangeLabel = formatYearRange(node.softStartYear, node.softEndYear, node.isConcluded);
+  const rangeLabel = formatYearRange(node.year, node.endYear, node.concluded);
 
   return (
     <div>
@@ -75,7 +75,7 @@ export default function ContextTreeItem({ node, activeSlug, depth = 0 }: Props) 
       {hasChildren && expanded && (
         <div>
           {node.children.map((child) => (
-            <ContextTreeItem
+            <NodeTreeItem
               key={child.id}
               node={child}
               activeSlug={activeSlug}

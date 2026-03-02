@@ -1,20 +1,20 @@
 import Link from 'next/link';
 import { Image as DatoImage } from 'react-datocms';
-import type { ContextCard } from '@/lib/types';
+import type { NodeCard } from '@/lib/types';
 import { formatYearRange } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
 import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
-  context: ContextCard;
+  node: NodeCard;
 }
 
-export default function TimelineCard({ context }: Props) {
-  const { slug, title, color, featuredImage, softStartYear, softEndYear, isConcluded, children } = context;
+export default function TimelineCard({ node }: Props) {
+  const { slug, title, color, featuredImage, year, endYear, concluded, children } = node;
 
   const accentColor = getAccentColor(color);
 
-  const rangeLabel = formatYearRange(softStartYear, softEndYear, isConcluded);
+  const rangeLabel = formatYearRange(year, endYear, concluded);
 
   return (
     <Link
@@ -57,7 +57,7 @@ export default function TimelineCard({ context }: Props) {
           {rangeLabel && (
             <span className="text-xs text-stone-500 font-mono">{rangeLabel}</span>
           )}
-          <StatusBadge isConcluded={isConcluded} className="ml-auto" />
+          <StatusBadge concluded={concluded} className="ml-auto" />
         </div>
 
         {children.length > 0 && (

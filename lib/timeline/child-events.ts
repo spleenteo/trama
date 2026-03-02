@@ -1,14 +1,14 @@
-import type { ChildEvent, EventSummary } from '@/lib/types';
+import type { ChildEvent, NodeSummary } from '@/lib/types';
 
-interface ContextWithRefEvents {
+interface NodeWithRefNodes {
   id: string;
   color?: { hex: string } | null;
-  _allReferencingEvents?: EventSummary[];
+  _allReferencingNodes?: NodeSummary[];
 }
 
-export function extractChildEvents(children: ContextWithRefEvents[]): ChildEvent[] {
+export function extractChildEvents(children: NodeWithRefNodes[]): ChildEvent[] {
   return children.flatMap((ctx) =>
-    (ctx._allReferencingEvents ?? []).map((ev) => ({
+    (ctx._allReferencingNodes ?? []).map((ev) => ({
       ...ev,
       sourceContextId: ctx.id,
       sourceContextColor: ctx.color?.hex ?? null,

@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useTimelineStore } from '@/lib/store';
 import { performRequest } from '@/lib/datocms/client';
-import { EVENT_DETAIL_QUERY } from '@/lib/datocms/queries';
-import type { EventDetail } from '@/lib/types';
+import { NODE_DETAIL_QUERY } from '@/lib/datocms/queries';
+import type { NodeDetail } from '@/lib/types';
 import DatoImage from '@/components/shared/DatoImage';
 import DatoStructuredText from '@/components/shared/DatoStructuredText';
-import RelatedEventsList from '@/components/detail/RelatedEventsList';
+import RelatedNodesList from '@/components/detail/RelatedNodesList';
 import EventDetailMeta from '@/components/detail/EventDetailMeta';
 import EventDetailMedia from '@/components/detail/EventDetailMedia';
 import EventDetailLinks from '@/components/detail/EventDetailLinks';
@@ -17,7 +17,7 @@ import EventDetailCustomFields from '@/components/detail/EventDetailCustomFields
 import { getAccentColor } from '@/lib/utils/color';
 
 interface QueryResult {
-  event: EventDetail | null;
+  node: NodeDetail | null;
 }
 
 export default function EventDetailPanel() {
@@ -25,17 +25,17 @@ export default function EventDetailPanel() {
   const selectedEventId = useTimelineStore((s) => s.selectedEventId);
   const clearSelectedEvent = useTimelineStore((s) => s.clearSelectedEvent);
 
-  const [event, setEvent] = useState<EventDetail | null>(null);
+  const [node, setNode] = useState<NodeDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Fetch event detail when selection changes
+  // Fetch node detail when selection changes
   const fetchDetail = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const { event: data } = await performRequest<QueryResult>(EVENT_DETAIL_QUERY, {
-        eventId: id,
+      const { node: data } = await performRequest<QueryResult>(NODE_DETAIL_QUERY, {
+        nodeId: id,
       });
-      setEvent(data);
+      setNode(data);
       // Update URL with ?event=slug
       if (data) {
         const url = new URL(window.location.href);
@@ -51,7 +51,7 @@ export default function EventDetailPanel() {
     if (selectedEventId) {
       fetchDetail(selectedEventId);
     } else {
-      setEvent(null);
+      setNode(null);
       // Remove ?event from URL
       const url = new URL(window.location.href);
       if (url.searchParams.has('event')) {
@@ -65,7 +65,7 @@ export default function EventDetailPanel() {
     clearSelectedEvent();
   };
 
-  const accentColor = getAccentColor(event?.context?.color);
+  const accentColor = getAccentColor(node?.parent?.color ?? node?.color);
 
   return (
     <AnimatePresence>
@@ -84,7 +84,7 @@ export default function EventDetailPanel() {
             style={{ borderLeftColor: accentColor, borderLeftWidth: 3 }}
           >
             <span className="text-xs font-semibold text-stone-500 truncate">
-              {event?.context?.title ?? '…'}
+              {node?.parent?.title ?? '…'}
             </span>
             <button
               onClick={handleClose}
@@ -105,29 +105,29 @@ export default function EventDetailPanel() {
               </div>
             )}
 
-            {!loading && event && (
+            {!loading && node && (
               <div className="flex flex-col gap-5 p-4">
-                <EventDetailMeta event={event} accentColor={accentColor} />
+                <EventDetailMeta event={node} accentColor={accentColor} />
 
                 {/* Featured image */}
-                {event.featuredImage?.responsiveImage && (
+                {node.featuredImage?.responsiveImage && (
                   <div className="rounded-xl overflow-hidden -mx-4">
                     <DatoImage
-                      data={event.featuredImage.responsiveImage}
+                      data={node.featuredImage.responsiveImage}
                       className="w-full"
                     />
                   </div>
                 )}
 
                 {/* Description */}
-                {event.description && (
-                  <DatoStructuredText data={event.description} />
+                {node.description && (
+                  <DatoStructuredText data={node.description} />
                 )}
 
                 {/* Tags */}
-                {event.tags.length > 0 && (
+                {node.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
-                    {event.tags.map((tag) => (
+                    {node.tags.map((tag) => (
                       <span
                         key={tag.id}
                         className="text-xs px-2 py-0.5 rounded-full font-medium"
@@ -142,15 +142,15 @@ export default function EventDetailPanel() {
                   </div>
                 )}
 
-                <EventDetailMedia media={event.media} />
-                <EventDetailLinks links={event.externalLinks ?? []} />
-                <EventDetailCustomFields fields={event.customFields ?? []} />
+                <EventDetailMedia media={node.media} />
+                <EventDetailLinks links={node.externalLinks ?? []} />
+                <EventDetailCustomFields fields={node.customFields ?? []} />
 
-                {/* Related events */}
-                {event.relatedEvents.length > 0 && (
-                  <RelatedEventsList
-                    related={event.relatedEvents}
-                    currentContextId={event.context.id}
+                {/* Related nodes */}
+                {node.relatedNodes.length > 0 && (
+                  <RelatedNodesList
+                    related={node.relatedNodes}
+                    currentParentId={node.parent?.id ?? null}
                   />
                 )}
               </div>

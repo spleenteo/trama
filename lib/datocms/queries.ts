@@ -1,75 +1,92 @@
-import { IMAGE_FIELDS_FRAGMENT, EVENT_SUMMARY_FIELDS_FRAGMENT } from './fragments';
+import { IMAGE_FIELDS_FRAGMENT, NODE_SUMMARY_FIELDS_FRAGMENT } from './fragments';
 
-export const ALL_ROOT_CONTEXTS_QUERY = /* GraphQL */ `
-  query AllRootContexts {
-    allContexts(filter: { parent: { exists: false } }, orderBy: position_ASC) {
+/** Homepage: all root nodes (no parent) with their direct children + super events from children */
+export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
+  query AllRootNodes {
+    allNodes(filter: { parent: { exists: false } }, orderBy: position_ASC) {
       id
       title
       slug
       color { hex }
+      year
+      endYear
+      concluded
+      visibility
+      eventType
       featuredImage {
         responsiveImage(imgixParams: { w: 400, h: 250, fit: crop }) {
           ...imageFields
         }
       }
-      softStartYear
-      softEndYear
-      isConcluded
       children {
         id
         title
         slug
         color { hex }
-        softStartYear
-        softEndYear
-        isConcluded
-      }
-      _allReferencingEvents(
-        filter: { visibility: { eq: "super" } }
-        orderBy: year_ASC
-        first: 100
-      ) {
-        ...eventSummaryFields
+        year
+        endYear
+        concluded
+        visibility
+        eventType
+        _allReferencingNodes(
+          filter: { visibility: { eq: "super" } }
+          orderBy: year_ASC
+          first: 100
+        ) {
+          ...nodeSummaryFields
+        }
       }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
-  ${EVENT_SUMMARY_FIELDS_FRAGMENT}
+  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
-export const CONTEXT_TREE_QUERY = /* GraphQL */ `
-  query ContextTree($rootId: ItemId!) {
-    context(filter: { id: { eq: $rootId } }) {
+/** Full tree from a root node — 4 levels deep for the sidebar */
+export const NODE_TREE_QUERY = /* GraphQL */ `
+  query NodeTree($rootId: ItemId!) {
+    node(filter: { id: { eq: $rootId } }) {
       id
       title
       slug
       color { hex }
       description { value }
       featuredImage { responsiveImage { ...imageFields } }
-      softStartYear
-      softEndYear
-      isConcluded
+      year
+      endYear
+      concluded
+      visibility
+      eventType
       children {
         id
         title
         slug
         color { hex }
-        softStartYear
-        softEndYear
-        isConcluded
+        year
+        endYear
+        concluded
+        visibility
+        eventType
         children {
           id
           title
           slug
           color { hex }
-          softStartYear
-          softEndYear
-          isConcluded
+          year
+          endYear
+          concluded
+          visibility
+          eventType
           children {
             id
             title
             slug
             color { hex }
+            year
+            endYear
+            concluded
+            visibility
+            eventType
           }
         }
       }
@@ -78,18 +95,21 @@ export const CONTEXT_TREE_QUERY = /* GraphQL */ `
   ${IMAGE_FIELDS_FRAGMENT}
 `;
 
-export const CONTEXT_BY_SLUG_QUERY = /* GraphQL */ `
-  query ContextBySlug($slug: String!) {
-    context(filter: { slug: { eq: $slug } }) {
+/** Single node by slug — for timeline page context */
+export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
+  query NodeBySlug($slug: String!) {
+    node(filter: { slug: { eq: $slug } }) {
       id
       title
       slug
       color { hex }
       description { value }
       featuredImage { responsiveImage { ...imageFields } }
-      softStartYear
-      softEndYear
-      isConcluded
+      year
+      endYear
+      concluded
+      visibility
+      eventType
       parent {
         id
         title
@@ -100,61 +120,48 @@ export const CONTEXT_BY_SLUG_QUERY = /* GraphQL */ `
         title
         slug
         color { hex }
-        softStartYear
-        softEndYear
-        isConcluded
-        _allReferencingEvents(
+        year
+        endYear
+        concluded
+        visibility
+        eventType
+        _allReferencingNodes(
           filter: { visibility: { in: ["super", "main"] } }
           orderBy: year_ASC
           first: 200
         ) {
-          ...eventSummaryFields
+          ...nodeSummaryFields
         }
       }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
-  ${EVENT_SUMMARY_FIELDS_FRAGMENT}
+  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
-export const EVENTS_BY_CONTEXT_QUERY = /* GraphQL */ `
-  query EventsByContext($contextId: ItemId!, $first: IntType = 500, $skip: IntType = 0) {
-    allEvents(
-      filter: { context: { eq: $contextId } }
+/** Child leaf nodes of a parent (events within a context) */
+export const CHILD_NODES_QUERY = /* GraphQL */ `
+  query ChildNodes($parentId: ItemId!, $first: IntType = 500, $skip: IntType = 0) {
+    allNodes(
+      filter: { parent: { eq: $parentId } }
       orderBy: year_ASC
       first: $first
       skip: $skip
     ) {
-      id
-      title
-      slug
-      year
-      month
-      day
-      time
-      endYear
-      endMonth
-      endDay
-      visibility
-      eventType
-      featuredImage {
-        responsiveImage(imgixParams: { w: 200, h: 200, fit: crop }) {
-          ...imageFields
-        }
-      }
-      tags { id name slug color { hex } }
-      relatedEvents { id title slug year context { id title } }
+      ...nodeSummaryFields
     }
-    _allEventsMeta(filter: { context: { eq: $contextId } }) {
+    _allNodesMeta(filter: { parent: { eq: $parentId } }) {
       count
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
+  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
-export const EVENT_DETAIL_QUERY = /* GraphQL */ `
-  query EventDetail($eventId: ItemId!) {
-    event(filter: { id: { eq: $eventId } }) {
+/** Full node detail — for the event detail panel */
+export const NODE_DETAIL_QUERY = /* GraphQL */ `
+  query NodeDetail($nodeId: ItemId!) {
+    node(filter: { id: { eq: $nodeId } }) {
       id
       title
       slug
@@ -167,30 +174,33 @@ export const EVENT_DETAIL_QUERY = /* GraphQL */ `
       endDay
       visibility
       eventType
+      color { hex }
+      concluded
       description { value }
       featuredImage {
         responsiveImage(imgixParams: { w: 600 }) { ...imageFields }
       }
       media { id url title responsiveImage(imgixParams: { w: 400 }) { ...imageFields } }
       externalLinks
-      relatedEvents { id title slug year month context { id title slug } }
+      relatedNodes { id title slug year month parent { id title slug } }
       tags { id name slug color { hex } }
       customFields
       latitude
       longitude
       number
-      context { id title slug color { hex } }
+      parent { id title slug color { hex } }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
 `;
 
-export const EVENT_BY_SLUG_QUERY = /* GraphQL */ `
-  query EventBySlug($slug: String!) {
-    event(filter: { slug: { eq: $slug } }) {
+/** Lookup node by slug — minimal, for URL resolution */
+export const NODE_BY_SLUG_MINIMAL_QUERY = /* GraphQL */ `
+  query NodeBySlugMinimal($slug: String!) {
+    node(filter: { slug: { eq: $slug } }) {
       id
       slug
-      context { id slug }
+      parent { id slug }
     }
   }
 `;

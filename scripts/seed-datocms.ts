@@ -2,8 +2,7 @@ import { buildClient } from "@datocms/cma-client-node";
 
 const client = buildClient({ apiToken: process.env.DATOCMS_API_TOKEN ?? "" });
 
-const CONTEXT_MODEL = "OdF30qLZRyWRfVMi_8lTjg";
-const EVENT_MODEL   = "Vg_FXz7USqmlzYQl8sMKVw";
+const NODE_MODEL = "JbziKHLoTUCdJCdTZwWWlg";
 
 function hex(h: string) {
   return { red: parseInt(h.slice(1,3),16), green: parseInt(h.slice(3,5),16), blue: parseInt(h.slice(5,7),16), alpha: 255 };
@@ -22,17 +21,11 @@ function dast(...paragraphs: string[]) {
   };
 }
 
-async function createCtx(fields: Record<string, unknown>) {
-  const item = await client.items.create({ item_type: { type: "item_type", id: CONTEXT_MODEL }, ...fields });
+async function createNode(fields: Record<string, unknown>) {
+  const item = await client.items.create({ item_type: { type: "item_type", id: NODE_MODEL }, ...fields });
   await client.items.publish(item.id);
-  console.log(`  ✓ context: ${fields.title}`);
+  console.log(`  ✓ nodo: ${fields.title} (${fields.year ?? ""})`);
   return item.id;
-}
-
-async function createEv(fields: Record<string, unknown>) {
-  const item = await client.items.create({ item_type: { type: "item_type", id: EVENT_MODEL }, ...fields });
-  await client.items.publish(item.id);
-  console.log(`  ✓ evento: ${fields.title} (${fields.year})`);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,12 +35,14 @@ async function main() {
   // ── CONTESTO RADICE ───────────────────────────────────────────────────────
   console.log("\n🟦 DatoCMS — Contesto radice");
 
-  const rootId = await createCtx({
+  const rootId = await createNode({
     title: "DatoCMS",
     slug: "datocms",
     color: hex("#0891B2"),
-    soft_start_year: 2015,
-    is_concluded: false,
+    year: 2015,
+    concluded: false,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "DatoCMS è un headless CMS italiano fondato nel 2015 a Firenze dal team di LeanPanda. Offre un'interfaccia di editing visuale, una potente API GraphQL e un ecosistema di integrazioni per framework moderni come Next.js, Nuxt, Astro e SvelteKit.",
       "Azienda bootstrapped, profittevole e indipendente, DatoCMS è cresciuta fino a raggiungere oltre 6 milioni di euro di ricavi annuali nel 2024 con un team di soli 13 persone e oltre 185 agenzie partner nel mondo."
@@ -57,24 +52,26 @@ async function main() {
   // ── SUB-CONTESTO 1: Origini e lancio ─────────────────────────────────────
   console.log("\n🟣 Sub-contesto 1: Origini e lancio");
 
-  const ctx1Id = await createCtx({
+  const ctx1Id = await createNode({
     title: "Origini e lancio",
     slug: "datocms-origini",
     parent_id: rootId,
     color: hex("#7C3AED"),
-    soft_start_year: 2015,
-    soft_end_year: 2019,
-    is_concluded: true,
+    year: 2015,
+    end_year: 2019,
+    concluded: true,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "DatoCMS nasce nel 2015 come strumento interno dell'agenzia creativa LeanPanda di Firenze, per rispondere alla frustrazione quotidiana di lavorare con CMS tradizionali e WYSIWYG goffi.",
       "In pochi anni diventa un prodotto indipendente, si separa dall'agenzia madre e si afferma come uno dei headless CMS di riferimento per sviluppatori e agenzie digitali in tutto il mondo."
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Fondazione di DatoCMS a Firenze",
     slug: "datocms-fondazione-2015",
-    context: ctx1Id,
+    parent_id: ctx1Id,
     year: 2015,
     visibility: "super",
     event_type: "key_moment",
@@ -84,10 +81,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Prima versione pubblica del prodotto",
     slug: "datocms-lancio-pubblico-2016",
-    context: ctx1Id,
+    parent_id: ctx1Id,
     year: 2016,
     visibility: "super",
     event_type: "key_moment",
@@ -97,10 +94,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Draft/Published records — primo workflow editoriale",
     slug: "datocms-draft-published-2018",
-    context: ctx1Id,
+    parent_id: ctx1Id,
     year: 2018,
     month: 3,
     visibility: "main",
@@ -111,10 +108,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Indipendenza da LeanPanda — azienda autonoma e profittevole",
     slug: "datocms-indipendenza-2019",
-    context: ctx1Id,
+    parent_id: ctx1Id,
     year: 2019,
     visibility: "main",
     event_type: "key_moment",
@@ -124,10 +121,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Lancio del community forum datocms.com/community",
     slug: "datocms-community-forum-2019",
-    context: ctx1Id,
+    parent_id: ctx1Id,
     year: 2019,
     month: 8,
     visibility: "regular",
@@ -141,24 +138,26 @@ async function main() {
   // ── SUB-CONTESTO 2: Content Modeling ─────────────────────────────────────
   console.log("\n🟡 Sub-contesto 2: Content Modeling");
 
-  const ctx2Id = await createCtx({
+  const ctx2Id = await createNode({
     title: "Content Modeling",
     slug: "datocms-content-modeling",
     parent_id: rootId,
     color: hex("#D97706"),
-    soft_start_year: 2018,
-    soft_end_year: 2022,
-    is_concluded: true,
+    year: 2018,
+    end_year: 2022,
+    concluded: true,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "L'evoluzione del sistema di modellazione dei contenuti è il cuore dello sviluppo di DatoCMS. Dai semplici campi testo si arriva a uno dei sistemi di editing strutturato più potenti del panorama headless CMS.",
       "Il percorso include il Plugin SDK per l'estensibilità, la gestione avanzata dei media con AI, il rivoluzionario formato DAST per il testo strutturato e i blocchi annidati illimitati."
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Plugin SDK v1 — il CMS diventa estensibile",
     slug: "datocms-plugin-sdk-v1-2018",
-    context: ctx2Id,
+    parent_id: ctx2Id,
     year: 2018,
     month: 10,
     visibility: "super",
@@ -169,10 +168,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Nuova Media Area: AI tagging, Mux video, BlurHash",
     slug: "datocms-media-area-2019",
-    context: ctx2Id,
+    parent_id: ctx2Id,
     year: 2019,
     month: 12,
     visibility: "super",
@@ -183,10 +182,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Structured Text e formato DAST",
     slug: "datocms-structured-text-2021",
-    context: ctx2Id,
+    parent_id: ctx2Id,
     year: 2021,
     month: 2,
     visibility: "super",
@@ -197,10 +196,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Nested Blocks — blocchi annidati illimitati",
     slug: "datocms-nested-blocks-2021",
-    context: ctx2Id,
+    parent_id: ctx2Id,
     year: 2021,
     month: 10,
     visibility: "main",
@@ -211,10 +210,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Plugin SDK v2 con TypeScript e nuovi hook",
     slug: "datocms-plugin-sdk-v2-2021",
-    context: ctx2Id,
+    parent_id: ctx2Id,
     year: 2021,
     month: 12,
     visibility: "main",
@@ -228,24 +227,26 @@ async function main() {
   // ── SUB-CONTESTO 3: Developer Experience ─────────────────────────────────
   console.log("\n🔵 Sub-contesto 3: Developer Experience");
 
-  const ctx3Id = await createCtx({
+  const ctx3Id = await createNode({
     title: "Developer Experience",
     slug: "datocms-developer-experience",
     parent_id: rootId,
     color: hex("#1565C0"),
-    soft_start_year: 2017,
-    soft_end_year: 2024,
-    is_concluded: true,
+    year: 2017,
+    end_year: 2024,
+    concluded: true,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "DatoCMS si distingue nel mercato headless CMS per la qualità dell'esperienza di sviluppo: API GraphQL, SDK tipizzati, integrazioni ufficiali con i framework più diffusi e strumenti CLI avanzati.",
       "Dalla prima integrazione con Gatsby nel 2017 al lancio dei Cache Tags nel 2024, ogni iterazione mira a ridurre la complessità per lo sviluppatore e aumentare le performance delle applicazioni."
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "gatsby-source-datocms — prima integrazione JAMstack",
     slug: "datocms-gatsby-plugin-2017",
-    context: ctx3Id,
+    parent_id: ctx3Id,
     year: 2017,
     month: 12,
     visibility: "super",
@@ -256,10 +257,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "GraphQL Content Delivery API",
     slug: "datocms-graphql-cda-2018",
-    context: ctx3Id,
+    parent_id: ctx3Id,
     year: 2018,
     month: 5,
     visibility: "super",
@@ -270,10 +271,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "GraphQL Real-Time Updates API",
     slug: "datocms-realtime-updates-2020",
-    context: ctx3Id,
+    parent_id: ctx3Id,
     year: 2020,
     month: 11,
     visibility: "super",
@@ -284,10 +285,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Nuova CLI TypeScript con migration scripts autogenerati",
     slug: "datocms-cli-typescript-2022",
-    context: ctx3Id,
+    parent_id: ctx3Id,
     year: 2022,
     month: 5,
     visibility: "main",
@@ -298,10 +299,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Cache Tags — invalidazione CDN chirurgica",
     slug: "datocms-cache-tags-2024",
-    context: ctx3Id,
+    parent_id: ctx3Id,
     year: 2024,
     month: 7,
     visibility: "main",
@@ -315,24 +316,26 @@ async function main() {
   // ── SUB-CONTESTO 4: Enterprise & Crescita ────────────────────────────────
   console.log("\n🟢 Sub-contesto 4: Enterprise & Crescita");
 
-  const ctx4Id = await createCtx({
+  const ctx4Id = await createNode({
     title: "Enterprise & Crescita",
     slug: "datocms-enterprise",
     parent_id: rootId,
     color: hex("#16A34A"),
-    soft_start_year: 2019,
-    soft_end_year: 2024,
-    is_concluded: true,
+    year: 2019,
+    end_year: 2024,
+    concluded: true,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "Dal 2019 DatoCMS sviluppa un piano Enterprise solido, introducendo funzionalità per team grandi, processi di approvazione complessi e requisiti di sicurezza avanzati.",
       "La crescita è costante e organica: da €2.17M di ARR nel 2021 a €6M nel 2024, sempre senza investitori esterni. Il traguardo della certificazione ISO 27001 nel 2024 apre le porte ai clienti enterprise con i requisiti di compliance più stringenti."
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "SSO Okta — primo accesso enterprise SAML",
     slug: "datocms-sso-okta-2019",
-    context: ctx4Id,
+    parent_id: ctx4Id,
     year: 2019,
     month: 11,
     visibility: "main",
@@ -343,10 +346,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Sandbox Environments e migration scripts GA",
     slug: "datocms-sandbox-environments-2020",
-    context: ctx4Id,
+    parent_id: ctx4Id,
     year: 2020,
     month: 8,
     visibility: "super",
@@ -357,10 +360,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Workflows — ciclo di vita editoriale multi-stage",
     slug: "datocms-workflows-2021",
-    context: ctx4Id,
+    parent_id: ctx4Id,
     year: 2021,
     month: 6,
     visibility: "super",
@@ -371,10 +374,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "ARR €3.3M — crescita +71% anno su anno",
     slug: "datocms-arr-2022",
-    context: ctx4Id,
+    parent_id: ctx4Id,
     year: 2022,
     visibility: "main",
     event_type: "key_moment",
@@ -384,10 +387,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Certificazione ISO 27001",
     slug: "datocms-iso-27001-2024",
-    context: ctx4Id,
+    parent_id: ctx4Id,
     year: 2024,
     month: 11,
     visibility: "main",
@@ -401,23 +404,25 @@ async function main() {
   // ── SUB-CONTESTO 5: AI & Innovazione ─────────────────────────────────────
   console.log("\n🔴 Sub-contesto 5: AI & Innovazione");
 
-  const ctx5Id = await createCtx({
+  const ctx5Id = await createNode({
     title: "AI & Innovazione",
     slug: "datocms-ai-innovazione",
     parent_id: rootId,
     color: hex("#DC2626"),
-    soft_start_year: 2023,
-    is_concluded: false,
+    year: 2023,
+    concluded: false,
+    visibility: "super",
+    event_type: "event",
     description: dast(
       "Dal 2023 DatoCMS abbraccia l'intelligenza artificiale come componente nativa della piattaforma, non come aggiunta superficiale. Le traduzioni AI, il MCP Server e il Visual Editing rappresentano la visione del CMS come infrastruttura intelligente.",
       "Con il MCP Server del 2025, DatoCMS diventa il primo headless CMS ad offrire un'integrazione nativa con gli agenti AI come Claude Code, Cursor e GitHub Copilot, abilitando la gestione dei contenuti via linguaggio naturale."
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Astro SDK e migrazione del sito datocms.com in Astro",
     slug: "datocms-astro-sdk-2024",
-    context: ctx5Id,
+    parent_id: ctx5Id,
     year: 2024,
     visibility: "main",
     event_type: "event",
@@ -427,10 +432,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "MCP Server — DatoCMS per agenti AI",
     slug: "datocms-mcp-server-2025",
-    context: ctx5Id,
+    parent_id: ctx5Id,
     year: 2025,
     visibility: "super",
     event_type: "key_moment",
@@ -440,10 +445,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "AI Translations con OpenAI, Claude, Gemini, DeepL",
     slug: "datocms-ai-translations-2025",
-    context: ctx5Id,
+    parent_id: ctx5Id,
     year: 2025,
     visibility: "super",
     event_type: "key_moment",
@@ -453,10 +458,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Migrazione infrastruttura da Heroku ad AWS Kubernetes",
     slug: "datocms-aws-kubernetes-2025",
-    context: ctx5Id,
+    parent_id: ctx5Id,
     year: 2025,
     month: 6,
     visibility: "main",
@@ -467,10 +472,10 @@ async function main() {
     ),
   });
 
-  await createEv({
+  await createNode({
     title: "Visual Editing GA — modifica visuale in-CMS",
     slug: "datocms-visual-editing-2026",
-    context: ctx5Id,
+    parent_id: ctx5Id,
     year: 2026,
     month: 2,
     visibility: "super",

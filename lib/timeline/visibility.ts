@@ -1,4 +1,4 @@
-import type { EventSummary, Visibility } from '@/lib/types';
+import type { NodeSummary, Visibility } from '@/lib/types';
 
 // Thresholds in pixels-per-year
 // These will be calibrated experimentally
@@ -12,9 +12,9 @@ export const VISIBILITY_THRESHOLDS = {
 };
 
 export function getVisibleEvents(
-  events: EventSummary[],
+  events: NodeSummary[],
   pixelsPerYear: number
-): EventSummary[] {
+): NodeSummary[] {
   let allowed: Visibility[];
 
   if (pixelsPerYear < SUPER_ONLY_THRESHOLD) {

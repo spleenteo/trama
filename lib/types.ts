@@ -29,30 +29,7 @@ export interface Tag {
   color: ColorField | null;
 }
 
-// ─── Context ─────────────────────────────────────────────────────────────────
-
-export interface ContextBase {
-  id: string;
-  title: string;
-  slug: string;
-  color: ColorField | null;
-  softStartYear: number | null;
-  softEndYear: number | null;
-  isConcluded: boolean | null;
-}
-
-export interface ContextTree extends ContextBase {
-  description: object | null; // DAST value
-  featuredImage: FileField | null;
-  children: ContextTree[];
-}
-
-export interface ContextCard extends ContextBase {
-  featuredImage: { responsiveImage: ResponsiveImage | null } | null;
-  children: ContextBase[];
-}
-
-// ─── Event ───────────────────────────────────────────────────────────────────
+// ─── Node (unified model) ────────────────────────────────────────────────────
 
 export type Visibility = 'regular' | 'main' | 'super';
 export type EventType = 'event' | 'incident' | 'key_moment';
@@ -67,36 +44,51 @@ export interface CustomField {
   value: string;
 }
 
-export interface EventSummary {
+/** Minimal node data — used in tree items, sidebar, bars */
+export interface NodeBase {
   id: string;
   title: string;
   slug: string;
+  color: ColorField | null;
   year: number;
+  endYear: number | null;
+  concluded: boolean | null;
+  visibility: Visibility;
+  eventType: EventType;
+}
+
+/** Node with tree structure — sidebar, context tree */
+export interface NodeTree extends NodeBase {
+  description: object | null; // DAST value
+  featuredImage: FileField | null;
+  children: NodeTree[];
+}
+
+/** Node summary — used in event markers and canvas rendering */
+export interface NodeSummary extends NodeBase {
   month: number | null;
   day: number | null;
   time: string | null;
-  endYear: number | null;
   endMonth: number | null;
   endDay: number | null;
-  visibility: Visibility;
-  eventType: EventType;
   featuredImage: { responsiveImage: ResponsiveImage | null } | null;
   tags: Tag[];
-  relatedEvents: Array<{
+  relatedNodes: Array<{
     id: string;
     title: string;
     slug: string;
     year: number;
-    context: { id: string; title: string };
   }>;
 }
 
-export interface ChildEvent extends EventSummary {
-  sourceContextId: string;
-  sourceContextColor: string | null;
+/** Node for homepage cards — lighter than full tree */
+export interface NodeCard extends NodeBase {
+  featuredImage: { responsiveImage: ResponsiveImage | null } | null;
+  children: NodeBase[];
 }
 
-export interface EventDetail extends EventSummary {
+/** Full node detail — for the detail panel */
+export interface NodeDetail extends NodeSummary {
   description: object | null; // DAST value
   media: FileField[];
   externalLinks: ExternalLink[] | null;
@@ -104,13 +96,25 @@ export interface EventDetail extends EventSummary {
   latitude: number | null;
   longitude: number | null;
   number: number | null;
-  context: ContextBase;
-  relatedEvents: Array<{
+  parent: { id: string; title: string; slug: string; color: ColorField | null } | null;
+  relatedNodes: Array<{
     id: string;
     title: string;
     slug: string;
     year: number;
     month: number | null;
-    context: { id: string; title: string; slug: string };
+    parent: { id: string; title: string; slug: string } | null;
   }>;
+}
+
+/** Child event with inherited source info (for sub-timeline rendering) */
+export interface ChildEvent extends NodeSummary {
+  sourceContextId: string;
+  sourceContextColor: string | null;
+}
+
+/** Computed range — attached after tree traversal */
+export interface NodeWithRange extends NodeBase {
+  computedStart: number;
+  computedEnd: number;
 }

@@ -1,23 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import type { ContextCard } from '@/lib/types';
+import type { NodeCard } from '@/lib/types';
 import TimelineCard from '@/components/home/TimelineCard';
 import HomeTimelineView from '@/components/home/HomeTimelineView';
 
 interface Props {
-  allContexts: ContextCard[];
+  allNodes: NodeCard[];
 }
 
 type ViewMode = 'cards' | 'timeline';
 
-export default function HomeView({ allContexts }: Props) {
+export default function HomeView({ allNodes }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
-  if (allContexts.length === 0) {
+  if (allNodes.length === 0) {
     return (
       <p className="text-stone-500 text-center py-20">
-        Nessuna timeline trovata. Crea dei Context radice su DatoCMS.
+        Nessuna timeline trovata. Crea dei nodi radice su DatoCMS.
       </p>
     );
   }
@@ -27,7 +27,7 @@ export default function HomeView({ allContexts }: Props) {
       {/* Header row */}
       <div className="flex items-center justify-between mb-6">
         <p className="text-sm font-semibold uppercase tracking-widest text-stone-400">
-          Timeline ({allContexts.length})
+          Timeline ({allNodes.length})
         </p>
 
         {/* Toggle */}
@@ -58,12 +58,12 @@ export default function HomeView({ allContexts }: Props) {
       {/* Content */}
       {viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allContexts.map((ctx) => (
-            <TimelineCard key={ctx.id} context={ctx} />
+          {allNodes.map((node) => (
+            <TimelineCard key={node.id} node={node} />
           ))}
         </div>
       ) : (
-        <HomeTimelineView contexts={allContexts} />
+        <HomeTimelineView nodes={allNodes} />
       )}
     </>
   );

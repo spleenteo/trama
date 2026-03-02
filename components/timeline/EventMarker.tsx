@@ -1,13 +1,13 @@
 'use client';
 
-import type { EventSummary } from '@/lib/types';
+import type { NodeSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear, formatTimelineDate } from '@/lib/timeline/date-utils';
 import { DEFAULT_ACCENT } from '@/lib/utils/color';
 import { MARKER_RADIUS } from '@/lib/timeline/constants';
 
 interface Props {
-  event: EventSummary;
+  event: NodeSummary;
   viewportStart: number;
   pixelsPerYear: number;
   canvasHeight: number;
