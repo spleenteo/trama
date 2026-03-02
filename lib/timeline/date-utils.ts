@@ -71,6 +71,19 @@ export function formatTimelineDate(
   return `${day} ${monthStr} ${absYear}${era}`;
 }
 
+export function formatYearRange(
+  start: number | null,
+  end: number | null,
+  isConcluded?: boolean | null,
+): string | null {
+  if (!start && !end) return null;
+  const fmt = (y: number) => (y < 0 ? `${Math.abs(y)} a.C.` : `${y}`);
+  if (start && end) return `${fmt(start)} — ${fmt(end)}`;
+  if (start && !isConcluded) return `dal ${fmt(start)}`;
+  if (start) return `${fmt(start)}`;
+  return null;
+}
+
 export function formatDuration(
   startYear: number, startMonth: number | null,
   endYear: number, endMonth: number | null

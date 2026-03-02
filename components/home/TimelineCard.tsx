@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { Image as DatoImage } from 'react-datocms';
 import type { ContextCard } from '@/lib/types';
+import { formatYearRange } from '@/lib/timeline/date-utils';
+import { getAccentColor } from '@/lib/utils/color';
+import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
   context: ContextCard;
@@ -9,18 +12,9 @@ interface Props {
 export default function TimelineCard({ context }: Props) {
   const { slug, title, color, featuredImage, softStartYear, softEndYear, isConcluded, children } = context;
 
-  const accentColor = color?.hex ?? '#6b7280';
+  const accentColor = getAccentColor(color);
 
-  const rangeLabel = (() => {
-    const start = softStartYear;
-    const end = softEndYear;
-    if (!start && !end) return null;
-    const fmt = (y: number) => (y < 0 ? `${Math.abs(y)} a.C.` : `${y}`);
-    if (start && end) return `${fmt(start)} — ${fmt(end)}`;
-    if (start && !end && !isConcluded) return `dal ${fmt(start)}`;
-    if (start) return `${fmt(start)}`;
-    return null;
-  })();
+  const rangeLabel = formatYearRange(softStartYear, softEndYear, isConcluded);
 
   return (
     <Link
@@ -63,15 +57,7 @@ export default function TimelineCard({ context }: Props) {
           {rangeLabel && (
             <span className="text-xs text-stone-500 font-mono">{rangeLabel}</span>
           )}
-          <span
-            className={`ml-auto text-xs font-medium px-2 py-0.5 rounded-full ${
-              isConcluded
-                ? 'bg-stone-100 text-stone-500'
-                : 'bg-emerald-50 text-emerald-700'
-            }`}
-          >
-            {isConcluded ? 'conclusa' : 'in corso'}
-          </span>
+          <StatusBadge isConcluded={isConcluded} className="ml-auto" />
         </div>
 
         {children.length > 0 && (

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { animate } from 'framer-motion';
 import type { ChildEvent, ContextTree, EventSummary } from '@/lib/types';
-import { computeFitToView, pixelToYear, yearToPixel } from '@/lib/timeline/scale';
+import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
 import { computeTimelineRange, eventToFractionalYear } from '@/lib/timeline/date-utils';
 import { getVisibleEvents } from '@/lib/timeline/visibility';
 import { useTimelineStore } from '@/lib/store';
@@ -16,6 +16,9 @@ import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
 import SuperEventMarker, { SUPER_CARD_W } from '@/components/timeline/SuperEventMarker';
 import SuperEventStem from '@/components/timeline/SuperEventStem';
+import { getAccentColor } from '@/lib/utils/color';
+import { TIMELINE_EASE } from '@/lib/timeline/constants';
+import { assignLevels } from '@/lib/timeline/collision';
 
 interface Props {
   context: ContextTree;
@@ -27,42 +30,6 @@ interface Props {
 
 const ZOOM_FACTOR = 1.4;
 
-// ─── Anti-collision level assignment for all point events ─────────────────────
-function assignLevels(
-  events: EventSummary[],
-  viewportStart: number,
-  pixelsPerYear: number,
-): Map<string, number> {
-  // Sort a copy by pixel X so we process left-to-right
-  const sorted = [...events].sort((a, b) => {
-    const xa = yearToPixel(eventToFractionalYear(a), viewportStart, pixelsPerYear);
-    const xb = yearToPixel(eventToFractionalYear(b), viewportStart, pixelsPerYear);
-    return xa - xb;
-  });
-
-  const levels = new Map<string, number>();
-  // occupied[L] = list of [lo, hi] pixel ranges already placed at level L
-  const occupied: [number, number][][] = [];
-
-  for (const ev of sorted) {
-    const x = yearToPixel(eventToFractionalYear(ev), viewportStart, pixelsPerYear);
-    const lo = x - SUPER_CARD_W / 2;
-    const hi = x + SUPER_CARD_W / 2;
-
-    let L = 0;
-    while (true) {
-      if (!occupied[L]) occupied[L] = [];
-      const overlaps = occupied[L].some(([a, b]) => lo < b && hi > a);
-      if (!overlaps) break;
-      L++;
-    }
-
-    levels.set(ev.id, L);
-    occupied[L].push([lo, hi]);
-  }
-
-  return levels;
-}
 const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scroll
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
@@ -104,7 +71,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
       if (Math.abs(fromVS - targetVS) < 0.001 && Math.abs(fromPPY - targetPPY) < 0.0001) return;
       animate(0, 1, {
         duration: 0.5,
-        ease: [0.4, 0, 0.2, 1],
+        ease: [...TIMELINE_EASE],
         onUpdate: (t) => {
           setViewportStart(fromVS + (targetVS - fromVS) * t);
           setPixelsPerYear(fromPPY + (targetPPY - fromPPY) * t);
@@ -230,7 +197,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     const fromPPY = ppyRef.current;
     animate(0, 1, {
       duration: 0.45,
-      ease: [0.4, 0, 0.2, 1],
+      ease: [...TIMELINE_EASE],
       onUpdate: (t) => {
         setViewportStart(fromVS + (targetVS - fromVS) * t);
         setPixelsPerYear(fromPPY + (targetPPY - fromPPY) * t);
@@ -255,9 +222,9 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
 
   // Unified level pool: all point events share the same Y-space below the axis
   const allPointEvents: EventSummary[] = [...pointSingles, ...superChildEvents, ...mainChildEvents];
-  const pointLevels = assignLevels(allPointEvents, viewportStart, pixelsPerYear);
+  const pointLevels = assignLevels(allPointEvents, viewportStart, pixelsPerYear, SUPER_CARD_W);
 
-  const contextColor = context.color?.hex ?? '#6b7280';
+  const contextColor = getAccentColor(context.color);
 
   // Combined entries (event + resolved color) for two-pass rendering
   type PointEntry = { ev: EventSummary; color: string | undefined };

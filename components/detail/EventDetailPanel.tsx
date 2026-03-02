@@ -7,20 +7,18 @@ import { useTimelineStore } from '@/lib/store';
 import { performRequest } from '@/lib/datocms/client';
 import { EVENT_DETAIL_QUERY } from '@/lib/datocms/queries';
 import type { EventDetail } from '@/lib/types';
-import { formatTimelineDate, formatDuration } from '@/lib/timeline/date-utils';
 import DatoImage from '@/components/shared/DatoImage';
 import DatoStructuredText from '@/components/shared/DatoStructuredText';
 import RelatedEventsList from '@/components/detail/RelatedEventsList';
+import EventDetailMeta from '@/components/detail/EventDetailMeta';
+import EventDetailMedia from '@/components/detail/EventDetailMedia';
+import EventDetailLinks from '@/components/detail/EventDetailLinks';
+import EventDetailCustomFields from '@/components/detail/EventDetailCustomFields';
+import { getAccentColor } from '@/lib/utils/color';
 
 interface QueryResult {
   event: EventDetail | null;
 }
-
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  event: 'Evento',
-  incident: 'Incidente',
-  key_moment: 'Momento chiave',
-};
 
 export default function EventDetailPanel() {
   const router = useRouter();
@@ -67,7 +65,7 @@ export default function EventDetailPanel() {
     clearSelectedEvent();
   };
 
-  const accentColor = event?.context?.color?.hex ?? '#6b7280';
+  const accentColor = getAccentColor(event?.context?.color);
 
   return (
     <AnimatePresence>
@@ -109,32 +107,7 @@ export default function EventDetailPanel() {
 
             {!loading && event && (
               <div className="flex flex-col gap-5 p-4">
-                {/* Title + meta */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-full text-white"
-                      style={{ backgroundColor: accentColor }}
-                    >
-                      {EVENT_TYPE_LABELS[event.eventType] ?? event.eventType}
-                    </span>
-                    <span className="text-xs text-stone-400 font-mono">
-                      {formatTimelineDate(event.year, event.month, event.day)}
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-semibold text-stone-900 leading-snug">
-                    {event.title}
-                  </h2>
-                  {event.endYear && (
-                    <p className="text-xs text-stone-500 mt-1">
-                      Fino a {formatTimelineDate(event.endYear, event.endMonth, event.endDay)}
-                      {' · '}
-                      <span className="text-stone-400">
-                        {formatDuration(event.year, event.month, event.endYear, event.endMonth)}
-                      </span>
-                    </p>
-                  )}
-                </div>
+                <EventDetailMeta event={event} accentColor={accentColor} />
 
                 {/* Featured image */}
                 {event.featuredImage?.responsiveImage && (
@@ -169,65 +142,9 @@ export default function EventDetailPanel() {
                   </div>
                 )}
 
-                {/* Media gallery */}
-                {event.media.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-2">
-                      Media
-                    </h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      {event.media.map((m) => (
-                        m.responsiveImage ? (
-                          <div key={m.url} className="rounded-lg overflow-hidden aspect-square">
-                            <DatoImage data={m.responsiveImage} className="w-full h-full object-cover" />
-                          </div>
-                        ) : null
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* External links */}
-                {event.externalLinks && event.externalLinks.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-2">
-                      Link
-                    </h3>
-                    <ul className="space-y-1">
-                      {event.externalLinks.map((link, i) => (
-                        <li key={i}>
-                          <a
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:text-blue-800 hover:underline truncate block"
-                          >
-                            {link.label || link.url}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Custom fields */}
-                {event.customFields && event.customFields.length > 0 && (
-                  <div>
-                    <h3 className="text-xs font-semibold uppercase tracking-widest text-stone-400 mb-2">
-                      Dati
-                    </h3>
-                    <table className="w-full text-xs">
-                      <tbody>
-                        {event.customFields.map((f, i) => (
-                          <tr key={i} className="border-b border-stone-50">
-                            <td className="py-1 pr-3 text-stone-500 font-medium whitespace-nowrap">{f.key}</td>
-                            <td className="py-1 text-stone-700">{f.value}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                <EventDetailMedia media={event.media} />
+                <EventDetailLinks links={event.externalLinks ?? []} />
+                <EventDetailCustomFields fields={event.customFields ?? []} />
 
                 {/* Related events */}
                 {event.relatedEvents.length > 0 && (

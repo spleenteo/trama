@@ -3,6 +3,8 @@
 import type { EventSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear, formatTimelineDate } from '@/lib/timeline/date-utils';
+import { DEFAULT_ACCENT } from '@/lib/utils/color';
+import { MARKER_RADIUS } from '@/lib/timeline/constants';
 
 interface Props {
   event: EventSummary;
@@ -14,7 +16,6 @@ interface Props {
   color?: string;
 }
 
-const MARKER_RADIUS = 5;
 const BAR_HEIGHT = 10;
 const STEM_LENGTH = 28;
 
@@ -49,7 +50,7 @@ export default function EventMarker({
   onSelect,
   color: colorProp,
 }: Props) {
-  const color = colorProp ?? '#6b7280';
+  const color = colorProp ?? DEFAULT_ACCENT;
   const startFrac = eventToFractionalYear(event);
   const x = yearToPixel(startFrac, viewportStart, pixelsPerYear);
 
@@ -87,7 +88,7 @@ export default function EventMarker({
           width={barWidth}
           height={BAR_HEIGHT}
           rx={BAR_HEIGHT / 2}
-          fill="#6b7280"
+          fill={color}
           opacity={0.7}
         />
         {/* Label */}
@@ -120,7 +121,7 @@ export default function EventMarker({
       {/* Stem */}
       <line x1={x} y1={axisY} x2={x} y2={shapeY} stroke="#d1d5db" strokeWidth={1} />
       {/* Shape */}
-      {markerShape(event.eventType, x, shapeY, MARKER_RADIUS, '#6b7280')}
+      {markerShape(event.eventType, x, shapeY, MARKER_RADIUS, color)}
       {/* Label */}
       <text
         x={x}

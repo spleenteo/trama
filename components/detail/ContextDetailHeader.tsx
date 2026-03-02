@@ -1,5 +1,7 @@
 import type { ContextTree } from '@/lib/types';
 import { formatTimelineDate } from '@/lib/timeline/date-utils';
+import { getAccentColor } from '@/lib/utils/color';
+import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
   context: ContextTree;
@@ -9,7 +11,7 @@ interface Props {
 
 export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxYear }: Props) {
   const { title, color, softStartYear, softEndYear, isConcluded } = context;
-  const accentColor = color?.hex ?? '#6b7280';
+  const accentColor = getAccentColor(color);
 
   const startYear = eventsMinYear ?? softStartYear;
   const endYear = eventsMaxYear ?? softEndYear;
@@ -38,15 +40,7 @@ export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxY
           <p className="text-xs text-stone-400 font-mono mt-0.5">{rangeLabel}</p>
         )}
       </div>
-      <span
-        className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
-          isConcluded
-            ? 'bg-stone-100 text-stone-500'
-            : 'bg-emerald-50 text-emerald-700'
-        }`}
-      >
-        {isConcluded ? 'conclusa' : 'in corso'}
-      </span>
+      <StatusBadge isConcluded={isConcluded} className="shrink-0" />
     </div>
   );
 }
