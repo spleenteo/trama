@@ -3,6 +3,8 @@
 import type { EventSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear, formatTimelineDate } from '@/lib/timeline/date-utils';
+import { DEFAULT_ACCENT } from '@/lib/utils/color';
+import { MARKER_RADIUS } from '@/lib/timeline/constants';
 
 interface Props {
   event: EventSummary;
@@ -20,7 +22,7 @@ interface Props {
 export const SUPER_CARD_W = 170;
 export const STEM_BASE = 18;
 export const LEVEL_STEP = 100; // gap between levels (accommodates label row)
-export const MARKER_R = 5;
+export const MARKER_R = MARKER_RADIUS;
 
 const CARD_R = 6;
 const PAD = 8;
@@ -73,7 +75,7 @@ export default function SuperEventMarker({
 
   if (x < -(SUPER_CARD_W / 2 + 20) || x > width + SUPER_CARD_W / 2 + 20) return null;
 
-  const color = colorProp ?? '#6b7280';
+  const color = colorProp ?? DEFAULT_ACCENT;
   const stemEnd = axisY + STEM_BASE + level * LEVEL_STEP;
 
   const titleLines = wrapText(event.title, CHARS_PER_LINE);

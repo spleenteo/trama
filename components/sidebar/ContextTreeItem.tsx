@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ContextTree } from '@/lib/types';
+import { formatYearRange } from '@/lib/timeline/date-utils';
+import { getAccentColor } from '@/lib/utils/color';
 
 interface Props {
   node: ContextTree;
@@ -15,14 +17,9 @@ export default function ContextTreeItem({ node, activeSlug, depth = 0 }: Props) 
   const [expanded, setExpanded] = useState(depth === 0 || node.slug === activeSlug);
   const hasChildren = node.children.length > 0;
   const isActive = node.slug === activeSlug;
-  const accentColor = node.color?.hex ?? '#9ca3af';
+  const accentColor = getAccentColor(node.color);
 
-  const rangeLabel = (() => {
-    if (!node.softStartYear) return null;
-    const fmt = (y: number) => (y < 0 ? `${Math.abs(y)}a.C.` : `${y}`);
-    if (node.softEndYear) return `${fmt(node.softStartYear)}–${fmt(node.softEndYear)}`;
-    return `${fmt(node.softStartYear)}`;
-  })();
+  const rangeLabel = formatYearRange(node.softStartYear, node.softEndYear, node.isConcluded);
 
   return (
     <div>
