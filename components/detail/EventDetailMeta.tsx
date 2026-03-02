@@ -1,4 +1,4 @@
-import type { EventDetail } from '@/lib/types';
+import type { NodeDetail } from '@/lib/types';
 import { formatTimelineDate, formatDuration } from '@/lib/timeline/date-utils';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -8,7 +8,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 };
 
 interface Props {
-  event: EventDetail;
+  event: NodeDetail;
   accentColor: string;
 }
 

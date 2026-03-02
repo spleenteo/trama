@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { animate } from 'framer-motion';
-import type { ChildEvent, ContextTree, EventSummary } from '@/lib/types';
+import type { ChildEvent, NodeTree, NodeSummary } from '@/lib/types';
 import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
 import { computeTimelineRange, eventToFractionalYear } from '@/lib/timeline/date-utils';
 import { getVisibleEvents } from '@/lib/timeline/visibility';
@@ -21,8 +21,8 @@ import { TIMELINE_EASE } from '@/lib/timeline/constants';
 import { assignLevels } from '@/lib/timeline/collision';
 
 interface Props {
-  context: ContextTree;
-  events: EventSummary[];
+  context: NodeTree;
+  events: NodeSummary[];
   childEvents?: ChildEvent[];
   initialEventSlug?: string;
   showContextBar?: boolean;
@@ -54,8 +54,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
 
   const { minYear, maxYear } = computeTimelineRange(
     events,
-    context.softStartYear,
-    context.softEndYear,
+    context.year,
+    context.endYear,
     context.children
   );
 
@@ -221,13 +221,13 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
 
   // Unified level pool: all point events share the same Y-space below the axis
-  const allPointEvents: EventSummary[] = [...pointSingles, ...superChildEvents, ...mainChildEvents];
+  const allPointEvents: NodeSummary[] = [...pointSingles, ...superChildEvents, ...mainChildEvents];
   const pointLevels = assignLevels(allPointEvents, viewportStart, pixelsPerYear, SUPER_CARD_W);
 
   const contextColor = getAccentColor(context.color);
 
   // Combined entries (event + resolved color) for two-pass rendering
-  type PointEntry = { ev: EventSummary; color: string | undefined };
+  type PointEntry = { ev: NodeSummary; color: string | undefined };
   const allPointEntries: PointEntry[] = [
     ...pointSingles.map((ev) => ({ ev, color: contextColor })),
     ...superChildEvents.map((ev) => ({ ev, color: ev.sourceContextColor ?? undefined })),

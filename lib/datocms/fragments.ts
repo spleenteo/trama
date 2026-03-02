@@ -10,8 +10,8 @@ export const IMAGE_FIELDS_FRAGMENT = /* GraphQL */ `
   }
 `;
 
-export const EVENT_SUMMARY_FIELDS_FRAGMENT = /* GraphQL */ `
-  fragment eventSummaryFields on EventRecord {
+export const NODE_SUMMARY_FIELDS_FRAGMENT = /* GraphQL */ `
+  fragment nodeSummaryFields on NodeRecord {
     id
     title
     slug
@@ -24,12 +24,14 @@ export const EVENT_SUMMARY_FIELDS_FRAGMENT = /* GraphQL */ `
     endDay
     visibility
     eventType
+    color { hex }
+    concluded
     featuredImage {
       responsiveImage(imgixParams: { w: 200, h: 200, fit: crop }) {
         ...imageFields
       }
     }
     tags { id name slug color { hex } }
-    relatedEvents { id title slug year context { id title } }
+    relatedNodes { id title slug year }
   }
 `;

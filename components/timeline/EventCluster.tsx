@@ -2,10 +2,10 @@
 
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear } from '@/lib/timeline/date-utils';
-import type { EventSummary } from '@/lib/types';
+import type { NodeSummary } from '@/lib/types';
 
 export interface Cluster {
-  events: EventSummary[];
+  events: NodeSummary[];
   representativeYear: number; // fractional year centre
 }
 
@@ -57,10 +57,10 @@ export default function EventCluster({ cluster, viewportStart, pixelsPerYear, ax
 const CLUSTER_DISTANCE_PX = 28;
 
 export function clusterEvents(
-  events: EventSummary[],
+  events: NodeSummary[],
   viewportStart: number,
   pixelsPerYear: number
-): { singles: EventSummary[]; clusters: Cluster[] } {
+): { singles: NodeSummary[]; clusters: Cluster[] } {
   if (events.length === 0) return { singles: [], clusters: [] };
 
   // Sort by x position
@@ -68,12 +68,12 @@ export function clusterEvents(
     .map((e) => ({ e, x: yearToPixel(eventToFractionalYear(e), viewportStart, pixelsPerYear) }))
     .sort((a, b) => a.x - b.x);
 
-  const singles: EventSummary[] = [];
+  const singles: NodeSummary[] = [];
   const clusters: Cluster[] = [];
   let i = 0;
 
   while (i < withX.length) {
-    const group: EventSummary[] = [withX[i].e];
+    const group: NodeSummary[] = [withX[i].e];
     let j = i + 1;
 
     while (j < withX.length && withX[j].x - withX[i].x < CLUSTER_DISTANCE_PX) {

@@ -1,27 +1,27 @@
-import type { ContextTree } from '@/lib/types';
+import type { NodeTree } from '@/lib/types';
 import { formatTimelineDate } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
 import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
-  context: ContextTree;
+  context: NodeTree;
   eventsMinYear?: number | null;
   eventsMaxYear?: number | null;
 }
 
 export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxYear }: Props) {
-  const { title, color, softStartYear, softEndYear, isConcluded } = context;
+  const { title, color, year, endYear, concluded } = context;
   const accentColor = getAccentColor(color);
 
-  const startYear = eventsMinYear ?? softStartYear;
-  const endYear = eventsMaxYear ?? softEndYear;
+  const startYear = eventsMinYear ?? year;
+  const computedEnd = eventsMaxYear ?? endYear;
   const currentYear = new Date().getFullYear();
 
   const rangeLabel = (() => {
     if (!startYear) return null;
     const startStr = formatTimelineDate(startYear);
-    if (isConcluded && endYear) return `${startStr} — ${formatTimelineDate(endYear)}`;
-    if (!isConcluded) return `${startStr} — oggi (${currentYear})`;
+    if (concluded && computedEnd) return `${startStr} — ${formatTimelineDate(computedEnd)}`;
+    if (!concluded) return `${startStr} — oggi (${currentYear})`;
     return startStr;
   })();
 
@@ -40,7 +40,7 @@ export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxY
           <p className="text-xs text-stone-400 font-mono mt-0.5">{rangeLabel}</p>
         )}
       </div>
-      <StatusBadge isConcluded={isConcluded} className="shrink-0" />
+      <StatusBadge concluded={concluded} className="shrink-0" />
     </div>
   );
 }

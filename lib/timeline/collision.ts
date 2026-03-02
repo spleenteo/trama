@@ -1,4 +1,4 @@
-import type { EventSummary } from '@/lib/types';
+import type { NodeSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear } from '@/lib/timeline/date-utils';
 
@@ -8,7 +8,7 @@ import { eventToFractionalYear } from '@/lib/timeline/date-utils';
  * (width = cardWidth) never overlap horizontally within the same level.
  */
 export function assignLevels(
-  events: EventSummary[],
+  events: NodeSummary[],
   viewportStart: number,
   pixelsPerYear: number,
   cardWidth: number,

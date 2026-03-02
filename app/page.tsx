@@ -1,14 +1,14 @@
 import { performRequest } from '@/lib/datocms/client';
-import { ALL_ROOT_CONTEXTS_QUERY } from '@/lib/datocms/queries';
-import type { ContextCard } from '@/lib/types';
+import { ALL_ROOT_NODES_QUERY } from '@/lib/datocms/queries';
+import type { NodeCard } from '@/lib/types';
 import HomeView from '@/components/home/HomeView';
 
 interface QueryResult {
-  allContexts: ContextCard[];
+  allNodes: NodeCard[];
 }
 
 export default async function HomePage() {
-  const { allContexts } = await performRequest<QueryResult>(ALL_ROOT_CONTEXTS_QUERY);
+  const { allNodes } = await performRequest<QueryResult>(ALL_ROOT_NODES_QUERY);
 
   return (
     <main className="min-h-screen bg-stone-50">
@@ -20,7 +20,7 @@ export default async function HomePage() {
       </header>
 
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <HomeView allContexts={allContexts} />
+        <HomeView allNodes={allNodes} />
       </div>
     </main>
   );

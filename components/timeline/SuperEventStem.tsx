@@ -1,12 +1,12 @@
 'use client';
 
-import type { EventSummary } from '@/lib/types';
+import type { NodeSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear } from '@/lib/timeline/date-utils';
 import { SUPER_CARD_W, STEM_BASE, LEVEL_STEP } from './SuperEventMarker';
 
 interface Props {
-  event: EventSummary;
+  event: NodeSummary;
   viewportStart: number;
   pixelsPerYear: number;
   axisY: number;

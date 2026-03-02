@@ -1,15 +1,15 @@
 'use client';
 
 import { useTimelineStore } from '@/lib/store';
-import type { ContextTree as ContextTreeType } from '@/lib/types';
-import ContextTreeItem from './ContextTreeItem';
+import type { NodeTree as NodeTreeType } from '@/lib/types';
+import NodeTreeItem from './NodeTreeItem';
 
 interface Props {
-  root: ContextTreeType;
+  root: NodeTreeType;
   activeSlug: string;
 }
 
-export default function ContextTree({ root, activeSlug }: Props) {
+export default function NodeTree({ root, activeSlug }: Props) {
   const sidebarOpen = useTimelineStore((s) => s.sidebarOpen);
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar);
 
@@ -39,7 +39,7 @@ export default function ContextTree({ root, activeSlug }: Props) {
       {/* Tree content */}
       {sidebarOpen && (
         <div className="flex-1 overflow-y-auto py-2 px-1">
-          <ContextTreeItem node={root} activeSlug={activeSlug} depth={0} />
+          <NodeTreeItem node={root} activeSlug={activeSlug} depth={0} />
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import type { EventSummary } from '@/lib/types';
+import type { NodeSummary } from '@/lib/types';
 
 export function eventToFractionalYear(event: {
   year: number;
@@ -13,10 +13,10 @@ export function eventToFractionalYear(event: {
 }
 
 export function computeTimelineRange(
-  events: EventSummary[],
-  softStart?: number | null,
-  softEnd?: number | null,
-  children?: { softStartYear?: number | null; softEndYear?: number | null }[]
+  events: NodeSummary[],
+  contextYear?: number | null,
+  contextEndYear?: number | null,
+  children?: { year: number; endYear?: number | null; computedMin?: number | null; computedMax?: number | null }[]
 ): { minYear: number; maxYear: number } {
   const years = events.flatMap((e) => {
     const start = eventToFractionalYear(e);
@@ -26,26 +26,28 @@ export function computeTimelineRange(
 
   const childYears = (children ?? []).flatMap((c) => {
     const pts: number[] = [];
-    if (c.softStartYear != null) pts.push(c.softStartYear);
-    if (c.softEndYear != null) pts.push(c.softEndYear);
+    if (c.computedMin != null) pts.push(c.computedMin);
+    else pts.push(c.year);
+    if (c.computedMax != null) pts.push(c.computedMax);
+    else if (c.endYear != null) pts.push(c.endYear);
     return pts;
   });
 
   const currentYear = new Date().getFullYear();
 
   if (years.length === 0 && childYears.length === 0) {
-    const min = softStart ?? currentYear - 10;
-    const max = softEnd ?? currentYear;
+    const min = contextYear ?? currentYear - 10;
+    const max = contextEndYear ?? currentYear;
     return { minYear: min, maxYear: max };
   }
 
   return {
-    minYear: Math.min(...years, ...childYears, ...(softStart != null ? [softStart] : [])),
-    maxYear: Math.max(...years, ...childYears, ...(softEnd != null ? [softEnd] : [currentYear])),
+    minYear: Math.min(...years, ...childYears, ...(contextYear != null ? [contextYear] : [])),
+    maxYear: Math.max(...years, ...childYears, ...(contextEndYear != null ? [contextEndYear] : [currentYear])),
   };
 }
 
-export function sortEventsByDate(events: EventSummary[]): EventSummary[] {
+export function sortEventsByDate(events: NodeSummary[]): NodeSummary[] {
   return [...events].sort(
     (a, b) => eventToFractionalYear(a) - eventToFractionalYear(b)
   );
