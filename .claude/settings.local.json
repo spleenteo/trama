@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m json.tool)",
+      "WebFetch(domain:www.datocms.com)",
+      "mcp__datocms__schema_info",
+      "mcp__datocms__resource",
+      "mcp__datocms__resources",
+      "mcp__datocms__resource_action",
+      "mcp__datocms__resource_action_method",
+      "mcp__datocms__create_script",
+      "mcp__datocms__execute_script",
+      "Bash(node:*)",
+      "mcp__datocms__resource_action_destructive_method_execute",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install:*)",
+      "Bash(mkdir:*)",
+      "Bash(npm run:*)",
+      "WebSearch",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:commons.wikimedia.org)",
+      "Bash(curl:*)",
+      "Bash(npx tsx:*)",
+      "mcp__datocms__resource_action_readonly_method_execute",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.mux.com)",
+      "mcp__datocms__update_script",
+      "mcp__datocms__view_script",
+      "Bash(rm:*)",
+      "Bash(/bin/rm:*)"
+    ]
+  }
+}
