@@ -286,7 +286,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               width={width}
             />}
 
-            {/* Ghost bars — sibling timelines, above context bar */}
+            {/* Ghost bars — sibling timelines, at the top of canvas */}
             {siblings && siblings.length > 0 && (
               <GhostBars
                 siblings={siblings}
@@ -294,7 +294,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
                 pixelsPerYear={pixelsPerYear}
                 width={width}
                 onSelectInfo={setSelectedEvent}
-                topY={20}
+                topY={8}
               />
             )}
 
