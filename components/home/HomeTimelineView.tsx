@@ -19,20 +19,33 @@ function deriveRange(r: NodeCard): { start: number; end: number | null } {
     .map((c) => c.endYear)
     .filter((y): y is number => y != null);
 
-  return {
-    start: r.year,
-    end: ends.length > 0 ? Math.max(...ends) : null,
-  };
+  if (ends.length > 0) {
+    return { start: r.year, end: Math.max(...ends) };
+  }
+
+  // Fallback: use max of children's start years
+  const childYears = r.children.map((c) => c.year);
+  if (childYears.length > 0) {
+    return { start: r.year, end: Math.max(...childYears) };
+  }
+
+  return { start: r.year, end: null };
 }
 
 function buildUniverseContext(roots: NodeCard[]): NodeTree {
+  const ranges = roots.map((r) => deriveRange(r));
+  const starts = ranges.map((r) => r.start);
+  const ends = ranges.map((r) => r.end).filter((y): y is number => y != null);
+  const minStart = starts.length > 0 ? Math.min(...starts) : 0;
+  const maxEnd = ends.length > 0 ? Math.max(...ends) : null;
+
   return {
     id: 'universe',
     title: 'Trama',
     slug: 'universe',
     color: null,
-    year: 0,
-    endYear: null,
+    year: minStart,
+    endYear: maxEnd,
     visibility: 'super',
     eventType: 'event',
     description: null,
@@ -50,14 +63,27 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
         eventType: r.eventType,
         description: null,
         featuredImage: null,
-        children: [],
+        children: r.children.map((c) => ({
+          id: c.id,
+          title: c.title,
+          slug: c.slug,
+          color: c.color,
+          year: c.year,
+          endYear: c.endYear,
+          visibility: c.visibility,
+          eventType: c.eventType,
+          description: null,
+          featuredImage: null,
+          children: [],
+        })),
       };
     }),
   };
 }
 
 export default function HomeTimelineView({ nodes }: Props) {
-  const childEvents = extractChildEvents(nodes);
+  const allSubContexts = nodes.flatMap(n => n.children);
+  const childEvents = extractChildEvents(allSubContexts);
 
   return (
     <div className="h-[60vh] min-h-[400px] border border-stone-200 rounded-2xl overflow-hidden bg-white flex flex-col">
