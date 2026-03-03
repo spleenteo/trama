@@ -70,7 +70,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
   const treeNode = rootTree ? findNodeInTree(rootTree, node.id) : null;
   const enrichedContext = {
     ...node,
-    children: (treeNode?.children ?? node.children).map((c) => {
+    children: (treeNode?.children ?? node.children).filter((c) => subContextIds.has(c.id)).map((c) => {
       const range = rangeMap.get(c.id);
       return {
         ...c,
