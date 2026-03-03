@@ -29,7 +29,8 @@
       "mcp__datocms__update_script",
       "mcp__datocms__view_script",
       "Bash(rm:*)",
-      "Bash(/bin/rm:*)"
+      "Bash(/bin/rm:*)",
+      "Bash(ls:*)"
     ]
   }
 }
