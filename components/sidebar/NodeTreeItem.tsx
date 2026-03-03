@@ -20,7 +20,7 @@ export default function NodeTreeItem({ node, activeSlug, depth = 0, siblingIds }
   const toggleSiblingVisibility = useTimelineStore((s) => s.toggleSiblingVisibility);
   const visibleSiblingIds = useTimelineStore((s) => s.visibleSiblingIds);
   const [expanded, setExpanded] = useState(depth === 0 || node.slug === activeSlug);
-  const hasChildren = node.children.some((c) => c.children.length > 0);
+  const hasChildren = (node.children ?? []).some((c) => (c.children?.length ?? 0) > 0);
   const isActive = node.slug === activeSlug;
   const accentColor = getAccentColor(node.color);
   const isSibling = siblingIds?.has(node.id) ?? false;
@@ -121,8 +121,8 @@ export default function NodeTreeItem({ node, activeSlug, depth = 0, siblingIds }
       {/* Children */}
       {hasChildren && expanded && (
         <div>
-          {node.children
-            .filter((child) => child.children.length > 0)
+          {(node.children ?? [])
+            .filter((child) => (child.children?.length ?? 0) > 0)
             .map((child) => (
               <NodeTreeItem
                 key={child.id}
