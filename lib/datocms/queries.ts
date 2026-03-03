@@ -10,7 +10,6 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
       color { hex }
       year
       endYear
-      concluded
       visibility
       eventType
       featuredImage {
@@ -25,7 +24,7 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-        concluded
+  
         visibility
         eventType
         _allReferencingNodes(
@@ -54,7 +53,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
       featuredImage { responsiveImage { ...imageFields } }
       year
       endYear
-      concluded
+
       visibility
       eventType
       children {
@@ -64,7 +63,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-        concluded
+  
         visibility
         eventType
         children {
@@ -74,7 +73,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
           color { hex }
           year
           endYear
-          concluded
+    
           visibility
           eventType
           children {
@@ -84,7 +83,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
             color { hex }
             year
             endYear
-            concluded
+      
             visibility
             eventType
           }
@@ -107,7 +106,7 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
       featuredImage { responsiveImage { ...imageFields } }
       year
       endYear
-      concluded
+
       visibility
       eventType
       parent {
@@ -122,9 +121,10 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-        concluded
+  
         visibility
         eventType
+        children { id }
         _allReferencingNodes(
           filter: { visibility: { in: ["super", "main"] } }
           orderBy: year_ASC
@@ -175,7 +175,7 @@ export const NODE_DETAIL_QUERY = /* GraphQL */ `
       visibility
       eventType
       color { hex }
-      concluded
+
       description { value }
       featuredImage {
         responsiveImage(imgixParams: { w: 600 }) { ...imageFields }

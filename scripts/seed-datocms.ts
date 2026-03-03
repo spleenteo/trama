@@ -40,7 +40,6 @@ async function main() {
     slug: "datocms",
     color: hex("#0891B2"),
     year: 2015,
-    concluded: false,
     visibility: "super",
     event_type: "event",
     description: dast(
@@ -59,7 +58,6 @@ async function main() {
     color: hex("#7C3AED"),
     year: 2015,
     end_year: 2019,
-    concluded: true,
     visibility: "super",
     event_type: "event",
     description: dast(
@@ -145,7 +143,6 @@ async function main() {
     color: hex("#D97706"),
     year: 2018,
     end_year: 2022,
-    concluded: true,
     visibility: "super",
     event_type: "event",
     description: dast(
@@ -234,7 +231,6 @@ async function main() {
     color: hex("#1565C0"),
     year: 2017,
     end_year: 2024,
-    concluded: true,
     visibility: "super",
     event_type: "event",
     description: dast(
@@ -323,7 +319,6 @@ async function main() {
     color: hex("#16A34A"),
     year: 2019,
     end_year: 2024,
-    concluded: true,
     visibility: "super",
     event_type: "event",
     description: dast(
@@ -410,7 +405,6 @@ async function main() {
     parent_id: rootId,
     color: hex("#DC2626"),
     year: 2023,
-    concluded: false,
     visibility: "super",
     event_type: "event",
     description: dast(

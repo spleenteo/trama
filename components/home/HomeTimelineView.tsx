@@ -9,21 +9,19 @@ interface Props {
 }
 
 // Derive a usable [start, end] range for a root node.
-// If the root has no end date, fall back to the min/max of its sub-nodes.
+// If the root has no end date, fall back to the max of its sub-nodes.
 function deriveRange(r: NodeCard): { start: number; end: number | null } {
-  const CURRENT_YEAR = new Date().getFullYear();
-
   if (r.endYear != null) {
     return { start: r.year, end: r.endYear };
   }
 
   const ends = r.children
-    .map((c) => c.endYear ?? (c.concluded === false ? CURRENT_YEAR : null))
+    .map((c) => c.endYear)
     .filter((y): y is number => y != null);
 
   return {
     start: r.year,
-    end: ends.length > 0 ? Math.max(...ends) : (r.concluded === false ? CURRENT_YEAR : null),
+    end: ends.length > 0 ? Math.max(...ends) : null,
   };
 }
 
@@ -35,7 +33,6 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
     color: null,
     year: 0,
     endYear: null,
-    concluded: false,
     visibility: 'super',
     eventType: 'event',
     description: null,
@@ -49,7 +46,6 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
         color: r.color,
         year: start,
         endYear: end,
-        concluded: r.concluded,
         visibility: r.visibility,
         eventType: r.eventType,
         description: null,

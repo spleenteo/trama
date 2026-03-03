@@ -10,7 +10,6 @@ import { useTimelineStore } from '@/lib/store';
 import ContextDetailHeader from '@/components/detail/ContextDetailHeader';
 import TimelineAxis from '@/components/timeline/TimelineAxis';
 import ZoomControls from '@/components/timeline/ZoomControls';
-import EventMarker from '@/components/timeline/EventMarker';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
@@ -220,8 +219,9 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super');
   const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
 
-  // Unified level pool: all point events share the same Y-space below the axis
-  const allPointEvents: NodeSummary[] = [...pointSingles, ...superChildEvents, ...mainChildEvents];
+  // Unified level pool: all events that get cards below the axis
+  // rangeSingles also get cards (in addition to their bar on the axis)
+  const allPointEvents: NodeSummary[] = [...pointSingles, ...rangeSingles, ...superChildEvents, ...mainChildEvents];
   const pointLevels = assignLevels(allPointEvents, viewportStart, pixelsPerYear, SUPER_CARD_W);
 
   const contextColor = getAccentColor(context.color);
@@ -230,6 +230,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   type PointEntry = { ev: NodeSummary; color: string | undefined };
   const allPointEntries: PointEntry[] = [
     ...pointSingles.map((ev) => ({ ev, color: contextColor })),
+    ...rangeSingles.map((ev) => ({ ev, color: contextColor })),
     ...superChildEvents.map((ev) => ({ ev, color: ev.sourceContextColor ?? undefined })),
     ...mainChildEvents.map((ev) => ({ ev, color: ev.sourceContextColor ?? undefined })),
   ];
@@ -290,20 +291,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               pixelsPerYear={pixelsPerYear}
               width={width}
               axisY={axisY}
+              onSelectInfo={setSelectedEvent}
             />
-
-            {/* Range events (own context) — bar style */}
-            {rangeSingles.map((ev) => (
-              <EventMarker
-                key={ev.id}
-                event={ev}
-                viewportStart={viewportStart}
-                pixelsPerYear={pixelsPerYear}
-                canvasHeight={canvasHeight}
-                axisY={axisY}
-                onSelect={setSelectedEvent}
-              />
-            ))}
 
             {/* Clustered events */}
             {clusters.map((cl, i) => (

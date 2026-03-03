@@ -25,7 +25,6 @@ export const NODE_SUMMARY_FIELDS_FRAGMENT = /* GraphQL */ `
     visibility
     eventType
     color { hex }
-    concluded
     featuredImage {
       responsiveImage(imgixParams: { w: 200, h: 200, fit: crop }) {
         ...imageFields
