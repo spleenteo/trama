@@ -4,10 +4,11 @@ import {
   NODE_BY_SLUG_QUERY,
   NODE_TREE_QUERY,
   CHILD_NODES_QUERY,
+  PROMOTED_EVENTS_QUERY,
 } from '@/lib/datocms/queries';
 import type { NodeTree as NodeTreeType, NodeSummary } from '@/lib/types';
-import { extractChildEvents } from '@/lib/timeline/child-events';
-import { getSiblings, findNodeInTree, computeTreeRanges } from '@/lib/timeline/tree-utils';
+import { buildChildEvents } from '@/lib/timeline/child-events';
+import { getSiblings, findNodeInTree, computeTreeRanges, collectPromotedNodeIds, buildParentMap } from '@/lib/timeline/tree-utils';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -58,9 +59,22 @@ export default async function TimelinePage({ params, searchParams }: Props) {
       .map((c) => c.id)
   );
   const leafEvents = allNodes.filter((n) => !subContextIds.has(n.id));
-  const subContexts = node.children.filter((c) => subContextIds.has(c.id));
 
-  const childEvents = extractChildEvents(subContexts);
+  // Collect promoted events from the full tree (super at any depth, main at depth 1)
+  const { superIds, mainIds } = rootTree
+    ? collectPromotedNodeIds(rootTree, node.id)
+    : { superIds: [], mainIds: [] };
+  const promotedIds = [...superIds, ...mainIds];
+
+  let childEvents: import('@/lib/types').ChildEvent[] = [];
+  if (promotedIds.length > 0 && rootTree) {
+    const { allNodes: promotedEvents } = await performRequest<ChildNodesResult>(
+      PROMOTED_EVENTS_QUERY,
+      { ids: promotedIds },
+    );
+    const parentMap = buildParentMap(rootTree);
+    childEvents = buildChildEvents(promotedEvents, parentMap);
+  }
 
   // Compute ranges from the full tree so children without endYear get computed ranges
   const rangeMap = rootTree ? computeTreeRanges(rootTree) : new Map();

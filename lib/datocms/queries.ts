@@ -1,6 +1,6 @@
 import { IMAGE_FIELDS_FRAGMENT, NODE_SUMMARY_FIELDS_FRAGMENT } from './fragments';
 
-/** Homepage: all root nodes (no parent) with their direct children + super events from children */
+/** Homepage: all root nodes (no parent) with their direct children */
 export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
   query AllRootNodes {
     allNodes(filter: { parent: { exists: false } }, orderBy: position_ASC) {
@@ -24,21 +24,12 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-  
         visibility
         eventType
-        _allReferencingNodes(
-          filter: { visibility: { eq: "super" } }
-          orderBy: year_ASC
-          first: 100
-        ) {
-          ...nodeSummaryFields
-        }
       }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
-  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
 /** Full tree from a root node — 4 levels deep for the sidebar */
@@ -106,7 +97,6 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
       featuredImage { responsiveImage { ...imageFields } }
       year
       endYear
-
       visibility
       eventType
       parent {
@@ -121,22 +111,13 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-  
         visibility
         eventType
         children { id }
-        _allReferencingNodes(
-          filter: { visibility: { in: ["super", "main"] } }
-          orderBy: year_ASC
-          first: 200
-        ) {
-          ...nodeSummaryFields
-        }
       }
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
-  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
 /** Child leaf nodes of a parent (events within a context) */
@@ -192,6 +173,17 @@ export const NODE_DETAIL_QUERY = /* GraphQL */ `
     }
   }
   ${IMAGE_FIELDS_FRAGMENT}
+`;
+
+/** Batch fetch nodes by IDs — for promoted events collected from tree traversal */
+export const PROMOTED_EVENTS_QUERY = /* GraphQL */ `
+  query PromotedEvents($ids: [ItemId!]!) {
+    allNodes(filter: { id: { in: $ids } }, first: 500) {
+      ...nodeSummaryFields
+    }
+  }
+  ${IMAGE_FIELDS_FRAGMENT}
+  ${NODE_SUMMARY_FIELDS_FRAGMENT}
 `;
 
 /** Lookup node by slug — minimal, for URL resolution */

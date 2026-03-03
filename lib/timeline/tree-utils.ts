@@ -151,6 +151,43 @@ export function findNodeInTree(root: NodeTree, id: string): NodeTree | null {
 }
 
 /**
+ * Walk the subtree of `currentNodeId` and collect promoted event IDs:
+ * - `super` events at any depth
+ * - `main` events at depth 1 (direct children of direct children)
+ *
+ * A node is considered a leaf event if it has no children.
+ */
+export function collectPromotedNodeIds(
+  root: NodeTree,
+  currentNodeId: string,
+): { superIds: string[]; mainIds: string[] } {
+  const current = findNodeInTree(root, currentNodeId);
+  if (!current) return { superIds: [], mainIds: [] };
+
+  const superIds: string[] = [];
+  const mainIds: string[] = [];
+
+  function walk(node: NodeTree, depth: number) {
+    const isLeaf = !node.children || node.children.length === 0;
+    if (isLeaf) {
+      if (node.visibility === 'super') superIds.push(node.id);
+      else if (node.visibility === 'main' && depth === 2) mainIds.push(node.id);
+      return;
+    }
+    for (const child of node.children) {
+      walk(child, depth + 1);
+    }
+  }
+
+  // Start walking from each direct child (depth 1)
+  for (const child of current.children ?? []) {
+    walk(child, 1);
+  }
+
+  return { superIds, mainIds };
+}
+
+/**
  * Get siblings of a node within a tree: nodes that share the same parent.
  * Returns the sibling NodeTree objects (excludes the node itself).
  */
