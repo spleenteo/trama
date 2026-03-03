@@ -283,7 +283,7 @@ main().catch(e => {
 Esegui lo script con Bash, passando il token via variabile d'ambiente (timeout 300 secondi):
 
 ```bash
-cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=73cf92a8063412336c282a6f085a23 npx tsx scripts/seed-[tema].ts 2>&1
+cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=c5ff13f9eb2c32512fd8d8d1fae55e npx tsx scripts/seed-[tema].ts 2>&1
 ```
 
 Riporta all'utente:
