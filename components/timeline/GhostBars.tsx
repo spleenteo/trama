@@ -14,12 +14,14 @@ interface Props {
   pixelsPerYear: number;
   width: number;
   onSelectInfo?: (id: string) => void;
-  /** Y position of the top edge of the context bar — ghost bars stack above this */
+  /** Y position to start stacking ghost bars downward from */
   topY: number;
 }
 
-const BAR_HEIGHT = 20;
-const BAR_GAP = 10;
+const BAR_HEIGHT = 16;
+const LABEL_HEIGHT = 28;
+const BAR_GAP = 8;
+const SLOT_HEIGHT = BAR_HEIGHT + LABEL_HEIGHT + BAR_GAP;
 const INFO_SIZE = 16;
 const MIN_LABEL_WIDTH = 40;
 const GHOST_OPACITY = 0.15;
@@ -28,7 +30,6 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
   const router = useRouter();
   const visibleSiblingIds = useTimelineStore((s) => s.visibleSiblingIds);
 
-  // Filter to only visible siblings
   const visible = siblings.filter((s) => visibleSiblingIds.has(s.id));
   if (visible.length === 0) return null;
 
@@ -53,8 +54,8 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
         const x2 = Math.min(width, rawX2);
         const barWidth = Math.max(4, x2 - x1);
 
-        // Stack downward from the top of the canvas
-        const y = topY + i * (BAR_HEIGHT + BAR_GAP);
+        // Stack downward from top: label above bar
+        const barY = topY + LABEL_HEIGHT + i * SLOT_HEIGHT;
         const color = sib.color?.hex ?? '#9ca3af';
 
         // Sticky label
@@ -65,10 +66,10 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
 
         // Info icon
         const infoX = Math.max(rawX1, 0) - INFO_SIZE - 4;
-        const infoY = y + (BAR_HEIGHT - INFO_SIZE) / 2;
+        const infoY = barY + (BAR_HEIGHT - INFO_SIZE) / 2;
 
         return (
-          <g key={sib.id} className="ghost-bar">
+          <g key={sib.id}>
             {/* Info icon */}
             {onSelectInfo && (
               <g
@@ -120,49 +121,53 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
               style={{ pointerEvents: 'auto' }}
             >
               <title>{`${sib.title} — clicca per navigare`}</title>
-              {/* Hit area */}
-              <rect x={x1} y={y - 4} width={barWidth} height={BAR_HEIGHT + 8} fill="transparent" />
-              {/* Bar with hover transition */}
+              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" />
               <rect
-                x={x1} y={y}
+                x={x1} y={barY}
                 width={barWidth} height={BAR_HEIGHT}
                 rx={BAR_HEIGHT / 2}
                 fill={color}
                 opacity={GHOST_OPACITY}
                 style={{ transition: 'opacity 0.2s ease' }}
-                onMouseEnter={(e) => { (e.target as SVGRectElement).setAttribute('opacity', '0.65'); }}
+                onMouseEnter={(e) => { (e.target as SVGRectElement).setAttribute('opacity', '0.55'); }}
                 onMouseLeave={(e) => { (e.target as SVGRectElement).setAttribute('opacity', String(GHOST_OPACITY)); }}
               />
-              {/* Sticky label */}
-              {showLabel && (
-                <g style={{ pointerEvents: 'none' }}>
-                  <text
-                    x={labelX}
-                    y={y + BAR_HEIGHT / 2 + 1}
-                    fontSize={11}
-                    fill={color}
-                    fontWeight="500"
-                    fontFamily="ui-sans-serif, sans-serif"
-                    dominantBaseline="middle"
-                    opacity={0.6}
-                  >
-                    {sib.title.length > 28 ? sib.title.slice(0, 26) + '…' : sib.title}
-                  </text>
-                  {rangeLabel && visWidth > 120 && (
+              {/* Label above bar: name left, range right */}
+              {showLabel && (() => {
+                const displayTitle = sib.title.length > 32 ? sib.title.slice(0, 30) + '…' : sib.title;
+                const titleWidth = displayTitle.length * 7.5;
+                const rangeWidth = rangeLabel ? rangeLabel.length * 7 : 0;
+                const showRange = rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                return (
+                  <g style={{ pointerEvents: 'none' }}>
                     <text
                       x={labelX}
-                      y={y + BAR_HEIGHT / 2 + 13}
-                      fontSize={9}
+                      y={barY - 5}
+                      fontSize={12}
                       fill={color}
-                      fontWeight="400"
-                      fontFamily="ui-monospace, monospace"
-                      opacity={0.4}
+                      fontWeight="500"
+                      fontFamily="ui-sans-serif, sans-serif"
+                      opacity={0.6}
                     >
-                      {rangeLabel}
+                      {displayTitle}
                     </text>
-                  )}
-                </g>
-              )}
+                    {showRange && (
+                      <text
+                        x={Math.min(rawX2, width) - 12}
+                        y={barY - 5}
+                        textAnchor="end"
+                        fontSize={11}
+                        fill={color}
+                        fontWeight="600"
+                        fontFamily="ui-monospace, monospace"
+                        opacity={0.5}
+                      >
+                        {rangeLabel}
+                      </text>
+                    )}
+                  </g>
+                );
+              })()}
             </g>
           </g>
         );

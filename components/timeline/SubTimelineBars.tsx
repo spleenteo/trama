@@ -20,8 +20,10 @@ interface Props {
   onSelectInfo?: (id: string) => void;
 }
 
-const BAR_HEIGHT = 20;
-const BAR_GAP = 16;
+const BAR_HEIGHT = 16;
+const LABEL_HEIGHT = 28;       // space for name + range above the bar
+const BAR_GAP = 8;             // gap between label area of one bar and bar of the next
+const SLOT_HEIGHT = BAR_HEIGHT + LABEL_HEIGHT + BAR_GAP;
 const AXIS_CLEARANCE = 40;
 const INFO_SIZE = 16;
 const LABEL_PADDING = 12;
@@ -60,19 +62,20 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         const x1 = Math.max(0, rawX1);
         const x2 = Math.min(width, rawX2);
         const barWidth = Math.max(4, x2 - x1);
-        const y = axisY - AXIS_CLEARANCE - BAR_HEIGHT - i * (BAR_HEIGHT + BAR_GAP);
+        // Bar Y: grows upward from axis
+        const barY = axisY - AXIS_CLEARANCE - BAR_HEIGHT - i * SLOT_HEIGHT;
         const color = child.color?.hex ?? '#9ca3af';
         const isNavigable = (child.children?.length ?? 0) > 0;
 
-        // Sticky label: clamped to visible portion of bar
+        // Sticky label position
         const labelX = clampLabelX(rawX1, rawX2, width);
         const visWidth = visibleBarWidth(rawX1, rawX2, width);
         const showLabel = visWidth > MIN_LABEL_WIDTH;
         const rangeLabel = formatYearRange(Math.round(start), Math.round(end));
 
-        // Info icon — anchored to visible left edge of bar
+        // Info icon
         const infoX = Math.max(rawX1, 0) - INFO_SIZE - 4;
-        const infoY = y + (BAR_HEIGHT - INFO_SIZE) / 2;
+        const infoY = barY + (BAR_HEIGHT - INFO_SIZE) / 2;
 
         return (
           <g key={child.id}>
@@ -117,7 +120,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               </g>
             )}
 
-            {/* Bar */}
+            {/* Bar + label */}
             <g
               className={isNavigable ? 'cursor-pointer' : undefined}
               onClick={isNavigable ? () => router.push(`/timeline/${child.slug}`) : undefined}
@@ -126,42 +129,51 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               style={{ pointerEvents: 'auto' }}
             >
               {isNavigable && <title>{`${child.title} — clicca per navigare`}</title>}
-              <rect x={x1} y={y - 4} width={barWidth} height={BAR_HEIGHT + 8} fill="transparent" />
+              {/* Hit area covers bar + label */}
+              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" />
+              {/* Bar */}
               <rect
-                x={x1} y={y}
+                x={x1} y={barY}
                 width={barWidth} height={BAR_HEIGHT}
                 rx={BAR_HEIGHT / 2}
                 fill={color}
-                opacity={0.65}
+                opacity={0.55}
               />
-              {/* Sticky label: name + year range */}
-              {showLabel && (
-                <g style={{ pointerEvents: 'none' }}>
-                  <text
-                    x={labelX}
-                    y={y + BAR_HEIGHT / 2 + 1}
-                    fontSize={11}
-                    fill="white"
-                    fontWeight="600"
-                    fontFamily="ui-sans-serif, sans-serif"
-                    dominantBaseline="middle"
-                  >
-                    {child.title.length > 28 ? child.title.slice(0, 26) + '…' : child.title}
-                  </text>
-                  {rangeLabel && visWidth > 120 && (
+              {/* Label above bar: name left, range right */}
+              {showLabel && (() => {
+                const displayTitle = child.title.length > 32 ? child.title.slice(0, 30) + '…' : child.title;
+                const titleWidth = displayTitle.length * 7.5;
+                const rangeWidth = rangeLabel ? rangeLabel.length * 7 : 0;
+                const showRange = rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                return (
+                  <g style={{ pointerEvents: 'none' }}>
                     <text
                       x={labelX}
-                      y={y + BAR_HEIGHT / 2 + 13}
-                      fontSize={9}
-                      fill="rgba(255,255,255,0.7)"
-                      fontWeight="400"
-                      fontFamily="ui-monospace, monospace"
+                      y={barY - 5}
+                      fontSize={12}
+                      fill={color}
+                      fontWeight="600"
+                      fontFamily="ui-sans-serif, sans-serif"
                     >
-                      {rangeLabel}
+                      {displayTitle}
                     </text>
-                  )}
-                </g>
-              )}
+                    {showRange && (
+                      <text
+                        x={Math.min(rawX2, width) - LABEL_PADDING}
+                        y={barY - 5}
+                        textAnchor="end"
+                        fontSize={11}
+                        fill={color}
+                        fontWeight="600"
+                        fontFamily="ui-monospace, monospace"
+                        opacity={0.8}
+                      >
+                        {rangeLabel}
+                      </text>
+                    )}
+                  </g>
+                );
+              })()}
             </g>
           </g>
         );
