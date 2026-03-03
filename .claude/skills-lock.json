@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "datocms": {
+      "source": "jodusnodus/datocms-skill",
+      "sourceType": "github",
+      "computedHash": "b1768ec8960363458ce00dd4a3045499d5facdddbf1c2bc1f4bd12253bcf6caf"
+    }
+  }
+}
