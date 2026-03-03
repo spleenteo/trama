@@ -71,7 +71,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
       {/* Top nav */}
       <header className="shrink-0 border-b border-stone-200 bg-white px-4 py-2 flex items-center gap-3 z-10">
         <a href="/" className="text-stone-400 hover:text-stone-700 text-sm transition-colors">
-          ← Timeo
+          ← Trama
         </a>
         <span className="text-stone-200">/</span>
         {node.parent && (

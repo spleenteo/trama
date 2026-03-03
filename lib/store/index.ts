@@ -20,7 +20,7 @@ export const useTimelineStore = create<TimelineStore>((set) => ({
   sidebarOpen: true,
   hiddenSiblingIds: new Set(),
 
-  setSelectedEvent: (id) => set({ selectedEventId: id }),
+  setSelectedEvent: (id) => set((s) => ({ selectedEventId: s.selectedEventId === id ? null : id })),
   clearSelectedEvent: () => set({ selectedEventId: null }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (open) => set({ sidebarOpen: open }),

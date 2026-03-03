@@ -39,7 +39,7 @@ Funzione `buildUniverseContext(roots: ContextCard[]): ContextTree`:
 ```typescript
 {
   id: 'universe',
-  title: 'Timeo',
+  title: 'Trama',
   slug: 'universe',
   color: null,
   softStartYear: null,
@@ -65,7 +65,7 @@ Funzione `buildUniverseContext(roots: ContextCard[]): ContextTree`:
 Renderizza `<TimelineCanvas>` con:
 - `context={buildUniverseContext(contexts)}`
 - `events={[]}` — nessun evento diretto in V1
-- `showContextBar={false}` — la barra "Timeo" non ha senso nella home
+- `showContextBar={false}` — la barra "Trama" non ha senso nella home
 - `initialEventSlug={undefined}`
 
 Altezza: `h-[70vh]` o `flex-1` — discussione con l'utente se necessario.
@@ -110,7 +110,7 @@ Nel render, condiziona il `<TimelineBar>`:
 )}
 ```
 
-Nota: `ContextDetailHeader` per Universe mostrerà "Timeo" senza descrizione — accettabile in V1, da rifinire se necessario.
+Nota: `ContextDetailHeader` per Universe mostrerà "Trama" senza descrizione — accettabile in V1, da rifinire se necessario.
 
 ---
 
@@ -139,4 +139,4 @@ Nota: `ContextDetailHeader` per Universe mostrerà "Timeo" senza descrizione —
 - Le barre coprono i range corretti (softStartYear/softEndYear)
 - Click su una barra → naviga a `/timeline/[slug]`
 - Click toggle di nuovo → ritorna alla grid
-- `TimelineBar` "Timeo" non è visibile in home timeline view
+- `TimelineBar` "Trama" non è visibile in home timeline view

@@ -14,7 +14,7 @@ export default async function HomePage() {
     <main className="min-h-screen bg-stone-50">
       <header className="border-b border-stone-200 bg-white px-6 py-4">
         <div className="mx-auto max-w-6xl flex items-baseline gap-3">
-          <h1 className="text-2xl font-bold tracking-tight text-stone-900">Timeo</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-stone-900">Trama</h1>
           <span className="text-sm text-stone-400">esplora processi attraverso il tempo</span>
         </div>
       </header>

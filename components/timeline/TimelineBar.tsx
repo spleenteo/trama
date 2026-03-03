@@ -12,6 +12,8 @@ interface Props {
   pixelsPerYear: number;
   axisY: number;
   width: number;
+  nodeId?: string;
+  onSelectInfo?: (id: string) => void;
 }
 
 // Must match SubTimelineBars constants
@@ -19,6 +21,7 @@ const CHILD_SLOT_HEIGHT = 16 + 28 + 8; // BAR_HEIGHT + LABEL_HEIGHT + BAR_GAP
 const CHILD_AXIS_CLEARANCE = 40;
 const SELF_BAR_HEIGHT = 24;
 const SELF_BAR_GAP = 12;
+const INFO_SIZE = 16;
 
 function formatYear(year: number): string {
   const y = Math.round(year);
@@ -36,6 +39,8 @@ export default function TimelineBar({
   pixelsPerYear,
   axisY,
   width,
+  nodeId,
+  onSelectInfo,
 }: Props) {
   const xStartRaw = yearToPixel(minYear, viewportStart, pixelsPerYear);
   const xEndRaw = yearToPixel(maxYear, viewportStart, pixelsPerYear);
@@ -47,10 +52,6 @@ export default function TimelineBar({
 
   if (barWidth <= 0) return null;
 
-  // Total vertical space occupied by child bars from axis to top of highest bar.
-  // Formula mirrors SubTimelineBars: AXIS_CLEARANCE + BAR_HEIGHT + (n-1)*(BAR_HEIGHT+BAR_GAP)
-  // Simplified: CHILD_AXIS_CLEARANCE + numChildren*(CHILD_BAR_HEIGHT+CHILD_BAR_GAP) adds an
-  // extra BAR_GAP of breathing room between the context bar and the top child bar.
   const stackHeight = CHILD_AXIS_CLEARANCE + Math.max(numChildren, 0) * CHILD_SLOT_HEIGHT;
   const y = Math.max(4, axisY - stackHeight - SELF_BAR_GAP - SELF_BAR_HEIGHT);
 
@@ -65,8 +66,53 @@ export default function TimelineBar({
   const showDates = barWidth > 60;
   const showOnlyDates = !showTitle && showDates;
 
+  // Info icon — to the left of the visible bar
+  const infoX = xBar - INFO_SIZE - 6;
+  const infoY = y + (SELF_BAR_HEIGHT - INFO_SIZE) / 2;
+
   return (
     <g>
+      {/* Info icon */}
+      {nodeId && onSelectInfo && (
+        <g
+          className="cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelectInfo(nodeId);
+          }}
+          role="button"
+          aria-label={`Info: ${title}`}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <rect
+            x={infoX - 2} y={infoY - 2}
+            width={INFO_SIZE + 4} height={INFO_SIZE + 4}
+            fill="transparent"
+          />
+          <circle
+            cx={infoX + INFO_SIZE / 2}
+            cy={infoY + INFO_SIZE / 2}
+            r={INFO_SIZE / 2}
+            fill="white"
+            stroke={fill}
+            strokeWidth={1.5}
+            opacity={0.9}
+          />
+          <text
+            x={infoX + INFO_SIZE / 2}
+            y={infoY + INFO_SIZE / 2 + 4}
+            textAnchor="middle"
+            fontSize={11}
+            fontWeight="700"
+            fontFamily="ui-serif, Georgia, serif"
+            fill={fill}
+            style={{ pointerEvents: 'none' }}
+          >
+            i
+          </text>
+        </g>
+      )}
+
       {/* Bar fill */}
       <rect
         x={xBar}
