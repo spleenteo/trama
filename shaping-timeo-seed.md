@@ -2,9 +2,9 @@
 shaping: true
 ---
 
-# Timeo Seed — Shaping
+# Trama Seed — Shaping
 
-Skill riutilizzabile per caricare nuove timeline (contesti + eventi) su DatoCMS per il progetto Timeo, guidando l'utente dalla definizione del tema fino alla pubblicazione.
+Skill riutilizzabile per caricare nuove timeline (contesti + eventi) su DatoCMS per il progetto Trama, guidando l'utente dalla definizione del tema fino alla pubblicazione.
 
 ---
 
@@ -50,7 +50,7 @@ Il workflow procede in 5 fasi sequenziali, ognuna con un output concreto e verif
 | A4.2 | Blocchi per ogni contesto: upload immagini → createCtx → loop eventi con createEv |
 | A4.3 | Tutto in `main()` con `catch` e `process.exit(1)` in caso di errore |
 | **A5** | **Esecuzione** — Esegue `npx tsx scripts/seed-[tema].ts` e riporta output |
-| A5.1 | Esegue con Bash tool con timeout 300000ms |
+| A5.1 | Esegue con Bash tool con tramaut 300000ms |
 | A5.2 | Riporta conteggio successi/fallimenti upload e record creati |
 | A5.3 | In caso di errori di schema, analizza e suggerisce correzioni |
 
@@ -80,7 +80,7 @@ Il workflow procede in 5 fasi sequenziali, ognuna con un output concreto e verif
 ### Fase 1 — Comprensione (A1)
 
 ```
-Utente: /timeo-seed
+Utente: /trama-seed
 Claude: Domanda 1 → tema
 Utente: risposta
 Claude: Domanda 2 → range temporale + focus
@@ -170,7 +170,7 @@ const EVENT_MODEL   = "Vg_FXz7USqmlzYQl8sMKVw";
 ### Fase 5 — Esecuzione (A5)
 
 ```bash
-cd "/Users/spleenteo/Sites/Personal Apps/timeo" && DATOCMS_API_TOKEN=73cf92a8063412336c282a6f085a23 npx tsx scripts/seed-[tema].ts
+cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=73cf92a8063412336c282a6f085a23 npx tsx scripts/seed-[tema].ts
 ```
 
 Riportare all'utente:
@@ -181,7 +181,7 @@ Riportare all'utente:
 
 ---
 
-## Costanti DatoCMS (Timeo)
+## Costanti DatoCMS (Trama)
 
 ```
 Context model ID : OdF30qLZRyWRfVMi_8lTjg

@@ -284,6 +284,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               pixelsPerYear={pixelsPerYear}
               axisY={axisY}
               width={width}
+              nodeId={context.id}
+              onSelectInfo={setSelectedEvent}
             />}
 
             {/* Ghost bars — sibling timelines, at the top of canvas */}

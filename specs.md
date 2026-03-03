@@ -1,6 +1,6 @@
-# Timeo — Architecture & Claude Code Prompts
+# Trama — Architecture & Claude Code Prompts
 
-## 1. Cos'è Timeo
+## 1. Cos'è Trama
 
 Un software web che permette di studiare e interpretare processi attraverso eventi organizzati cronologicamente, disposti su timeline gerarchiche (contesti) e messi in relazione tra loro.
 
@@ -419,11 +419,11 @@ Segnala eventuali campi non supportati o errori durante la creazione.
 ### PROMPT 1 — Project Scaffolding
 
 ```
-Leggi il documento di architettura allegato (timeo-architecture.md), sezione 3 (Tech Stack) e sezione 5.1 (Route Structure).
+Leggi il documento di architettura allegato (trama-architecture.md), sezione 3 (Tech Stack) e sezione 5.1 (Route Structure).
 
 Crea un progetto Next.js 14+ con App Router. Setup:
 
-1. `npx create-next-app@latest timeo --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
+1. `npx create-next-app@latest trama --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"`
 2. Installa dipendenze:
    - `@datocms/cda-client` (GraphQL client)
    - `react-datocms` (Image, StructuredText, useQuerySubscription)
@@ -462,7 +462,7 @@ Implementa la homepage (`app/page.tsx`):
    - Conteggio sub-timeline (children.length)
 3. Ogni card linka a `/timeline/[slug]`
 4. Layout pulito, moderno, con Tailwind. Sfondo chiaro, card con ombre sottili.
-5. Header semplice con logo "Timeo" e eventuale subtitle
+5. Header semplice con logo "Trama" e eventuale subtitle
 
 Testa con dati reali da DatoCMS (crea almeno 2 Context root di prova nel CMS con qualche evento).
 ```

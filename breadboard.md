@@ -2,7 +2,7 @@
 shaping: true
 ---
 
-# Timeo — Breadboard (Shape A)
+# Trama — Breadboard (Shape A)
 
 ---
 

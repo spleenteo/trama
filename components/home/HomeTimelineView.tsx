@@ -28,7 +28,7 @@ function deriveRange(r: NodeCard): { start: number; end: number | null } {
 function buildUniverseContext(roots: NodeCard[]): NodeTree {
   return {
     id: 'universe',
-    title: 'Timeo',
+    title: 'Trama',
     slug: 'universe',
     color: null,
     year: 0,

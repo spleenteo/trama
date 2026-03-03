@@ -2,7 +2,7 @@
 shaping: true
 ---
 
-# Timeo — Slices
+# Trama — Slices
 
 Basato su: Shape A (breadboard.md). 6 slice verticali, ciascuna demo-able.
 

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Timeo",
+  title: "Trama",
   description: "Esplora processi storici attraverso timeline gerarchiche",
 };
 
