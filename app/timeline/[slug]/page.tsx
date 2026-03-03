@@ -7,7 +7,7 @@ import {
 } from '@/lib/datocms/queries';
 import type { NodeTree as NodeTreeType, NodeSummary } from '@/lib/types';
 import { extractChildEvents } from '@/lib/timeline/child-events';
-import { getSiblings } from '@/lib/timeline/tree-utils';
+import { getSiblings, findNodeInTree, computeTreeRanges } from '@/lib/timeline/tree-utils';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -62,6 +62,24 @@ export default async function TimelinePage({ params, searchParams }: Props) {
 
   const childEvents = extractChildEvents(subContexts);
 
+  // Compute ranges from the full tree so children without endYear get computed ranges
+  const rangeMap = rootTree ? computeTreeRanges(rootTree) : new Map();
+
+  // Enrich context node: use rootTree's version of current node's children (has full tree depth)
+  // and attach computedMin/computedMax from rangeMap
+  const treeNode = rootTree ? findNodeInTree(rootTree, node.id) : null;
+  const enrichedContext = {
+    ...node,
+    children: (treeNode?.children ?? node.children).map((c) => {
+      const range = rangeMap.get(c.id);
+      return {
+        ...c,
+        computedMin: range?.computedStart ?? undefined,
+        computedMax: range?.computedEnd ?? undefined,
+      };
+    }),
+  };
+
   // Compute siblings (other children of the same parent) for ghost bars
   const siblings = rootTree ? getSiblings(rootTree, node.id) : [];
   const siblingIds = new Set(siblings.map((s) => s.id));
@@ -98,7 +116,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
         {/* Canvas + detail panel */}
         <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
           <TimelineCanvas
-            context={node}
+            context={enrichedContext}
             events={leafEvents}
             childEvents={childEvents}
             initialEventSlug={eventSlug}
