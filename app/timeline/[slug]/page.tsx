@@ -7,9 +7,11 @@ import {
 } from '@/lib/datocms/queries';
 import type { NodeTree as NodeTreeType, NodeSummary } from '@/lib/types';
 import { extractChildEvents } from '@/lib/timeline/child-events';
+import { getSiblings } from '@/lib/timeline/tree-utils';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
+import SiblingResetEffect from '@/components/timeline/SiblingResetEffect';
 
 interface ChildWithGrandchildren {
   id: string;
@@ -60,6 +62,10 @@ export default async function TimelinePage({ params, searchParams }: Props) {
 
   const childEvents = extractChildEvents(subContexts);
 
+  // Compute siblings (other children of the same parent) for ghost bars
+  const siblings = rootTree ? getSiblings(rootTree, node.id) : [];
+  const siblingIds = new Set(siblings.map((s) => s.id));
+
   return (
     <div className="flex flex-col h-screen bg-stone-50 overflow-hidden">
       {/* Top nav */}
@@ -86,7 +92,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
       <div className="flex flex-1 min-h-0">
         {/* Sidebar */}
         {rootTree && (
-          <NodeTreeSidebar root={rootTree} activeSlug={slug} />
+          <NodeTreeSidebar root={rootTree} activeSlug={slug} siblingIds={siblingIds} />
         )}
 
         {/* Canvas + detail panel */}
@@ -96,8 +102,10 @@ export default async function TimelinePage({ params, searchParams }: Props) {
             events={leafEvents}
             childEvents={childEvents}
             initialEventSlug={eventSlug}
+            siblings={siblings}
           />
           <EventDetailPanel />
+          <SiblingResetEffect slug={slug} />
         </main>
       </div>
     </div>
