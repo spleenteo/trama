@@ -92,7 +92,7 @@ export default function SuperEventMarker({
   return (
     <g
       className="cursor-pointer"
-      onClick={() => onSelect(event.id)}
+      onClick={(e) => { e.stopPropagation(); onSelect(event.id); }}
       onMouseEnter={() => onHover(event.id)}
       onMouseLeave={() => onHover(null)}
       role="button"

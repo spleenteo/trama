@@ -113,12 +113,16 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     }
   }, [width, minYear, maxYear]);
 
-  // Init selected event from URL param (N11b)
+  // Init selected event from URL param (N11b) — run only once on mount.
+  // router.replace() in EventDetailPanel updates searchParams which re-renders
+  // the server component and changes initialEventSlug. Without the guard, the
+  // effect re-fires calling setSelectedEvent(same id) which toggles the panel closed.
+  const urlInitDone = useRef(false);
   useEffect(() => {
-    if (initialEventSlug) {
-      const match = events.find((e) => e.slug === initialEventSlug);
-      if (match) setSelectedEvent(match.id);
-    }
+    if (urlInitDone.current || !initialEventSlug) return;
+    urlInitDone.current = true;
+    const match = events.find((e) => e.slug === initialEventSlug);
+    if (match) setSelectedEvent(match.id);
   }, [initialEventSlug, events, setSelectedEvent]);
 
   // ─── Wheel zoom ───────────────────────────────────────────────────────────
