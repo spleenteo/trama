@@ -1,11 +1,11 @@
 'use client';
 
-import type { NodeCard, NodeTree } from '@/lib/types';
-import { extractChildEvents } from '@/lib/timeline/child-events';
+import type { NodeCard, NodeTree, ChildEvent } from '@/lib/types';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 
 interface Props {
   nodes: NodeCard[];
+  childEvents: ChildEvent[];
 }
 
 // Derive a usable [start, end] range for a root node.
@@ -81,10 +81,7 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
   };
 }
 
-export default function HomeTimelineView({ nodes }: Props) {
-  const allSubContexts = nodes.flatMap(n => n.children);
-  const childEvents = extractChildEvents(allSubContexts);
-
+export default function HomeTimelineView({ nodes, childEvents }: Props) {
   return (
     <div className="h-[60vh] min-h-[400px] border border-stone-200 rounded-2xl overflow-hidden bg-white flex flex-col">
       <TimelineCanvas

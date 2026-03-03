@@ -58,6 +58,14 @@ function typeLabel(eventType: string): string {
   }
 }
 
+function visibilityLabel(visibility: string): string | null {
+  switch (visibility) {
+    case 'super': return 'super';
+    case 'main':  return 'main';
+    default:      return null;
+  }
+}
+
 export default function SuperEventMarker({
   event,
   viewportStart,
@@ -137,6 +145,23 @@ export default function SuperEventMarker({
       >
         {label}
       </text>
+
+      {/* Visibility badge */}
+      {visibilityLabel(event.visibility) && (
+        <text
+          x={cardX + SUPER_CARD_W - PAD}
+          y={cardY + LABEL_H - 2}
+          textAnchor="end"
+          fontSize={9}
+          fontWeight="600"
+          fill={color}
+          opacity={0.5}
+          fontFamily="ui-monospace, monospace"
+          style={{ pointerEvents: 'none' }}
+        >
+          {visibilityLabel(event.visibility)}
+        </text>
+      )}
 
       {/* Title — one <text> per wrapped line */}
       {titleLines.map((line, i) => (

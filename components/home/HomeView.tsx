@@ -1,17 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import type { NodeCard } from '@/lib/types';
+import type { NodeCard, ChildEvent } from '@/lib/types';
 import TimelineCard from '@/components/home/TimelineCard';
 import HomeTimelineView from '@/components/home/HomeTimelineView';
 
 interface Props {
   allNodes: NodeCard[];
+  childEvents: ChildEvent[];
 }
 
 type ViewMode = 'cards' | 'timeline';
 
-export default function HomeView({ allNodes }: Props) {
+export default function HomeView({ allNodes, childEvents }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
 
   if (allNodes.length === 0) {
@@ -63,7 +64,7 @@ export default function HomeView({ allNodes }: Props) {
           ))}
         </div>
       ) : (
-        <HomeTimelineView nodes={allNodes} />
+        <HomeTimelineView nodes={allNodes} childEvents={childEvents} />
       )}
     </>
   );
