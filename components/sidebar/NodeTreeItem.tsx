@@ -18,13 +18,13 @@ export default function NodeTreeItem({ node, activeSlug, depth = 0, siblingIds }
   const router = useRouter();
   const setSelectedEvent = useTimelineStore((s) => s.setSelectedEvent);
   const toggleSiblingVisibility = useTimelineStore((s) => s.toggleSiblingVisibility);
-  const visibleSiblingIds = useTimelineStore((s) => s.visibleSiblingIds);
+  const hiddenSiblingIds = useTimelineStore((s) => s.hiddenSiblingIds);
   const [expanded, setExpanded] = useState(depth === 0 || node.slug === activeSlug);
   const hasChildren = (node.children ?? []).some((c) => (c.children?.length ?? 0) > 0);
   const isActive = node.slug === activeSlug;
   const accentColor = getAccentColor(node.color);
   const isSibling = siblingIds?.has(node.id) ?? false;
-  const isSiblingVisible = visibleSiblingIds.has(node.id);
+  const isSiblingVisible = !hiddenSiblingIds.has(node.id);
 
   const rangeLabel = formatYearRange(node.year, node.endYear);
 
@@ -82,8 +82,8 @@ export default function NodeTreeItem({ node, activeSlug, depth = 0, siblingIds }
           <button
             className={`shrink-0 w-5 h-5 flex items-center justify-center rounded transition-all ${
               isSiblingVisible
-                ? 'text-stone-600'
-                : 'text-stone-300 opacity-0 group-hover:opacity-100'
+                ? 'text-stone-300 opacity-0 group-hover:opacity-100'
+                : 'text-stone-400'
             } hover:text-stone-600 hover:bg-stone-100`}
             onClick={(e) => {
               e.stopPropagation();

@@ -5,11 +5,11 @@ import { useTimelineStore } from '@/lib/store';
 
 /** Clears visible siblings when the active slug changes (navigation) */
 export default function SiblingResetEffect({ slug }: { slug: string }) {
-  const clearVisibleSiblings = useTimelineStore((s) => s.clearVisibleSiblings);
+  const resetHiddenSiblings = useTimelineStore((s) => s.resetHiddenSiblings);
 
   useEffect(() => {
-    clearVisibleSiblings();
-  }, [slug, clearVisibleSiblings]);
+    resetHiddenSiblings();
+  }, [slug, resetHiddenSiblings]);
 
   return null;
 }
