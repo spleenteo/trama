@@ -12,6 +12,7 @@ import TimelineAxis from '@/components/timeline/TimelineAxis';
 import ZoomControls from '@/components/timeline/ZoomControls';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
+import GhostBars from '@/components/timeline/GhostBars';
 import TimelineBar from '@/components/timeline/TimelineBar';
 import SuperEventMarker, { SUPER_CARD_W } from '@/components/timeline/SuperEventMarker';
 import SuperEventStem from '@/components/timeline/SuperEventStem';
@@ -25,6 +26,7 @@ interface Props {
   childEvents?: ChildEvent[];
   initialEventSlug?: string;
   showContextBar?: boolean;
+  siblings?: NodeTree[];
 }
 
 const ZOOM_FACTOR = 1.4;
@@ -33,7 +35,7 @@ const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scro
 const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
 
-export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true }: Props) {
+export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true, siblings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
@@ -283,6 +285,18 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               axisY={axisY}
               width={width}
             />}
+
+            {/* Ghost bars — sibling timelines, above context bar */}
+            {siblings && siblings.length > 0 && (
+              <GhostBars
+                siblings={siblings}
+                viewportStart={viewportStart}
+                pixelsPerYear={pixelsPerYear}
+                width={width}
+                onSelectInfo={setSelectedEvent}
+                topY={20}
+              />
+            )}
 
             {/* Sub-timeline bars — above axis */}
             <SubTimelineBars

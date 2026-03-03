@@ -7,9 +7,10 @@ import NodeTreeItem from './NodeTreeItem';
 interface Props {
   root: NodeTreeType;
   activeSlug: string;
+  siblingIds?: Set<string>;
 }
 
-export default function NodeTree({ root, activeSlug }: Props) {
+export default function NodeTree({ root, activeSlug, siblingIds }: Props) {
   const sidebarOpen = useTimelineStore((s) => s.sidebarOpen);
   const toggleSidebar = useTimelineStore((s) => s.toggleSidebar);
 
@@ -39,7 +40,7 @@ export default function NodeTree({ root, activeSlug }: Props) {
       {/* Tree content */}
       {sidebarOpen && (
         <div className="flex-1 overflow-y-auto py-2 px-1">
-          <NodeTreeItem node={root} activeSlug={activeSlug} depth={0} />
+          <NodeTreeItem node={root} activeSlug={activeSlug} depth={0} siblingIds={siblingIds} />
         </div>
       )}
     </div>

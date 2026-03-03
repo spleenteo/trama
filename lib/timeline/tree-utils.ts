@@ -71,7 +71,7 @@ export function computeTreeRanges(
     const ownStart = node.year;
     const ownEnd = node.endYear ?? node.year;
 
-    if (node.children.length === 0) {
+    if (!node.children || node.children.length === 0) {
       const range = { computedStart: ownStart, computedEnd: ownEnd };
       ranges.set(node.id, range);
       return range;
@@ -79,7 +79,7 @@ export function computeTreeRanges(
 
     let minStart = ownStart;
     let maxEnd = ownEnd;
-    for (const child of node.children) {
+    for (const child of node.children ?? []) {
       const childRange = walk(child);
       minStart = Math.min(minStart, childRange.computedStart);
       maxEnd = Math.max(maxEnd, childRange.computedEnd);
@@ -121,7 +121,7 @@ export function inheritColor(
 export function buildParentMap(root: NodeTree): Map<string, NodeTree> {
   const map = new Map<string, NodeTree>();
   function walk(node: NodeTree) {
-    for (const child of node.children) {
+    for (const child of node.children ?? []) {
       map.set(child.id, node);
       walk(child);
     }
@@ -136,4 +136,27 @@ export function buildParentMap(root: NodeTree): Map<string, NodeTree> {
  */
 export function isContainer(node: { children?: unknown[] }): boolean {
   return (node.children?.length ?? 0) > 0;
+}
+
+/**
+ * Find a node by ID in a tree, returning it or null.
+ */
+export function findNodeInTree(root: NodeTree, id: string): NodeTree | null {
+  if (root.id === id) return root;
+  for (const child of root.children ?? []) {
+    const found = findNodeInTree(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Get siblings of a node within a tree: nodes that share the same parent.
+ * Returns the sibling NodeTree objects (excludes the node itself).
+ */
+export function getSiblings(root: NodeTree, nodeId: string): NodeTree[] {
+  const parentMap = buildParentMap(root);
+  const parent = parentMap.get(nodeId);
+  if (!parent) return []; // root node has no siblings
+  return parent.children.filter((c) => c.id !== nodeId);
 }

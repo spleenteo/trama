@@ -1,91 +1,84 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import type { NodeBase } from '@/lib/types';
+import type { NodeTree } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { formatYearRange } from '@/lib/timeline/date-utils';
-
-interface ChildWithRange extends NodeBase {
-  computedMin?: number | null;
-  computedMax?: number | null;
-  children?: unknown[];
-}
+import { computeTreeRanges } from '@/lib/timeline/tree-utils';
+import { useTimelineStore } from '@/lib/store';
+import { clampLabelX, visibleBarWidth } from '@/components/timeline/SubTimelineBars';
 
 interface Props {
-  children: ChildWithRange[];
+  siblings: NodeTree[];
   viewportStart: number;
   pixelsPerYear: number;
   width: number;
-  axisY: number;
   onSelectInfo?: (id: string) => void;
+  /** Y position of the top edge of the context bar — ghost bars stack above this */
+  topY: number;
 }
 
 const BAR_HEIGHT = 20;
-const BAR_GAP = 16;
-const AXIS_CLEARANCE = 40;
+const BAR_GAP = 10;
 const INFO_SIZE = 16;
-const LABEL_PADDING = 12;
 const MIN_LABEL_WIDTH = 40;
+const GHOST_OPACITY = 0.15;
 
-/** Clamp label X so it stays within the visible portion of a bar */
-export function clampLabelX(barX1: number, barX2: number, viewportWidth: number): number {
-  const visibleLeft = Math.max(barX1, 0);
-  const visibleRight = Math.min(barX2, viewportWidth);
-  return Math.min(visibleLeft + LABEL_PADDING, visibleRight - LABEL_PADDING);
-}
-
-/** Visible width of a bar within the viewport */
-export function visibleBarWidth(barX1: number, barX2: number, viewportWidth: number): number {
-  return Math.min(barX2, viewportWidth) - Math.max(barX1, 0);
-}
-
-export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY, onSelectInfo }: Props) {
+export default function GhostBars({ siblings, viewportStart, pixelsPerYear, width, onSelectInfo, topY }: Props) {
   const router = useRouter();
+  const visibleSiblingIds = useTimelineStore((s) => s.visibleSiblingIds);
 
-  const visible = children.filter((c) => {
-    const start = c.computedMin ?? c.year;
-    const end = c.computedMax ?? c.endYear ?? null;
-    return start != null && end != null;
-  });
-
+  // Filter to only visible siblings
+  const visible = siblings.filter((s) => visibleSiblingIds.has(s.id));
   if (visible.length === 0) return null;
+
+  // Compute ranges for each visible sibling (considers their children)
+  const rangeMap = new Map<string, { computedStart: number; computedEnd: number }>();
+  for (const sib of visible) {
+    const ranges = computeTreeRanges(sib);
+    const range = ranges.get(sib.id);
+    if (range) rangeMap.set(sib.id, range);
+  }
 
   return (
     <g>
-      {visible.map((child, i) => {
-        const start = child.computedMin ?? child.year;
-        const end = child.computedMax ?? child.endYear ?? child.year;
+      {visible.map((sib, i) => {
+        const range = rangeMap.get(sib.id);
+        if (!range) return null;
+
+        const { computedStart: start, computedEnd: end } = range;
         const rawX1 = yearToPixel(start, viewportStart, pixelsPerYear);
         const rawX2 = yearToPixel(end, viewportStart, pixelsPerYear);
         const x1 = Math.max(0, rawX1);
         const x2 = Math.min(width, rawX2);
         const barWidth = Math.max(4, x2 - x1);
-        const y = axisY - AXIS_CLEARANCE - BAR_HEIGHT - i * (BAR_HEIGHT + BAR_GAP);
-        const color = child.color?.hex ?? '#9ca3af';
-        const isNavigable = (child.children?.length ?? 0) > 0;
 
-        // Sticky label: clamped to visible portion of bar
+        // Stack downward from the top of the canvas
+        const y = topY + i * (BAR_HEIGHT + BAR_GAP);
+        const color = sib.color?.hex ?? '#9ca3af';
+
+        // Sticky label
         const labelX = clampLabelX(rawX1, rawX2, width);
         const visWidth = visibleBarWidth(rawX1, rawX2, width);
         const showLabel = visWidth > MIN_LABEL_WIDTH;
         const rangeLabel = formatYearRange(Math.round(start), Math.round(end));
 
-        // Info icon — anchored to visible left edge of bar
+        // Info icon
         const infoX = Math.max(rawX1, 0) - INFO_SIZE - 4;
         const infoY = y + (BAR_HEIGHT - INFO_SIZE) / 2;
 
         return (
-          <g key={child.id}>
+          <g key={sib.id} className="ghost-bar">
             {/* Info icon */}
             {onSelectInfo && (
               <g
                 className="cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSelectInfo(child.id);
+                  onSelectInfo(sib.id);
                 }}
                 role="button"
-                aria-label={`Info: ${child.title}`}
+                aria-label={`Info: ${sib.title}`}
                 style={{ pointerEvents: 'auto' }}
               >
                 <rect
@@ -100,7 +93,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
                   fill="white"
                   stroke={color}
                   strokeWidth={1.5}
-                  opacity={0.9}
+                  opacity={0.5}
                 />
                 <text
                   x={infoX + INFO_SIZE / 2}
@@ -110,6 +103,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
                   fontWeight="700"
                   fontFamily="ui-serif, Georgia, serif"
                   fill={color}
+                  opacity={0.5}
                   style={{ pointerEvents: 'none' }}
                 >
                   i
@@ -117,45 +111,52 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               </g>
             )}
 
-            {/* Bar */}
+            {/* Bar — hover fades in, click navigates */}
             <g
-              className={isNavigable ? 'cursor-pointer' : undefined}
-              onClick={isNavigable ? () => router.push(`/timeline/${child.slug}`) : undefined}
-              role={isNavigable ? 'button' : undefined}
-              aria-label={isNavigable ? `Naviga in: ${child.title}` : child.title}
+              className="cursor-pointer"
+              onClick={() => router.push(`/timeline/${sib.slug}`)}
+              role="button"
+              aria-label={`Naviga in: ${sib.title}`}
               style={{ pointerEvents: 'auto' }}
             >
-              {isNavigable && <title>{`${child.title} — clicca per navigare`}</title>}
+              <title>{`${sib.title} — clicca per navigare`}</title>
+              {/* Hit area */}
               <rect x={x1} y={y - 4} width={barWidth} height={BAR_HEIGHT + 8} fill="transparent" />
+              {/* Bar with hover transition */}
               <rect
                 x={x1} y={y}
                 width={barWidth} height={BAR_HEIGHT}
                 rx={BAR_HEIGHT / 2}
                 fill={color}
-                opacity={0.65}
+                opacity={GHOST_OPACITY}
+                style={{ transition: 'opacity 0.2s ease' }}
+                onMouseEnter={(e) => { (e.target as SVGRectElement).setAttribute('opacity', '0.65'); }}
+                onMouseLeave={(e) => { (e.target as SVGRectElement).setAttribute('opacity', String(GHOST_OPACITY)); }}
               />
-              {/* Sticky label: name + year range */}
+              {/* Sticky label */}
               {showLabel && (
                 <g style={{ pointerEvents: 'none' }}>
                   <text
                     x={labelX}
                     y={y + BAR_HEIGHT / 2 + 1}
                     fontSize={11}
-                    fill="white"
-                    fontWeight="600"
+                    fill={color}
+                    fontWeight="500"
                     fontFamily="ui-sans-serif, sans-serif"
                     dominantBaseline="middle"
+                    opacity={0.6}
                   >
-                    {child.title.length > 28 ? child.title.slice(0, 26) + '…' : child.title}
+                    {sib.title.length > 28 ? sib.title.slice(0, 26) + '…' : sib.title}
                   </text>
                   {rangeLabel && visWidth > 120 && (
                     <text
                       x={labelX}
                       y={y + BAR_HEIGHT / 2 + 13}
                       fontSize={9}
-                      fill="rgba(255,255,255,0.7)"
+                      fill={color}
                       fontWeight="400"
                       fontFamily="ui-monospace, monospace"
+                      opacity={0.4}
                     >
                       {rangeLabel}
                     </text>
