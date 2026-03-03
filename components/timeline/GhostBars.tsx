@@ -28,9 +28,9 @@ const GHOST_OPACITY = 0.15;
 
 export default function GhostBars({ siblings, viewportStart, pixelsPerYear, width, onSelectInfo, topY }: Props) {
   const router = useRouter();
-  const visibleSiblingIds = useTimelineStore((s) => s.visibleSiblingIds);
+  const hiddenSiblingIds = useTimelineStore((s) => s.hiddenSiblingIds);
 
-  const visible = siblings.filter((s) => visibleSiblingIds.has(s.id));
+  const visible = siblings.filter((s) => !hiddenSiblingIds.has(s.id));
   if (visible.length === 0) return null;
 
   // Compute ranges for each visible sibling (considers their children)
