@@ -3,18 +3,17 @@ import { Image as DatoImage } from 'react-datocms';
 import type { NodeCard } from '@/lib/types';
 import { formatYearRange } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
-import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
   node: NodeCard;
 }
 
 export default function TimelineCard({ node }: Props) {
-  const { slug, title, color, featuredImage, year, endYear, concluded, children } = node;
+  const { slug, title, color, featuredImage, year, endYear, children } = node;
 
   const accentColor = getAccentColor(color);
 
-  const rangeLabel = formatYearRange(year, endYear, concluded);
+  const rangeLabel = formatYearRange(year, endYear);
 
   return (
     <Link
@@ -53,12 +52,9 @@ export default function TimelineCard({ node }: Props) {
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap mt-auto">
-          {rangeLabel && (
-            <span className="text-xs text-stone-500 font-mono">{rangeLabel}</span>
-          )}
-          <StatusBadge concluded={concluded} className="ml-auto" />
-        </div>
+        {rangeLabel && (
+          <span className="text-xs text-stone-500 font-mono">{rangeLabel}</span>
+        )}
 
         {children.length > 0 && (
           <p className="text-xs text-stone-400">

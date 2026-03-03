@@ -16,7 +16,7 @@ export function computeTimelineRange(
   events: NodeSummary[],
   contextYear?: number | null,
   contextEndYear?: number | null,
-  children?: { year: number; endYear?: number | null; computedMin?: number | null; computedMax?: number | null }[]
+  children?: { year: number; endYear?: number | null; computedMin?: number | null; computedMax?: number | null }[],
 ): { minYear: number; maxYear: number } {
   const years = events.flatMap((e) => {
     const start = eventToFractionalYear(e);
@@ -33,17 +33,16 @@ export function computeTimelineRange(
     return pts;
   });
 
-  const currentYear = new Date().getFullYear();
-
+  // No events and no children → point at contextYear
   if (years.length === 0 && childYears.length === 0) {
-    const min = contextYear ?? currentYear - 10;
-    const max = contextEndYear ?? currentYear;
+    const min = contextYear ?? 0;
+    const max = contextEndYear ?? min;
     return { minYear: min, maxYear: max };
   }
 
   return {
     minYear: Math.min(...years, ...childYears, ...(contextYear != null ? [contextYear] : [])),
-    maxYear: Math.max(...years, ...childYears, ...(contextEndYear != null ? [contextEndYear] : [currentYear])),
+    maxYear: Math.max(...years, ...childYears, ...(contextEndYear != null ? [contextEndYear] : [])),
   };
 }
 
@@ -76,12 +75,10 @@ export function formatTimelineDate(
 export function formatYearRange(
   start: number | null,
   end: number | null,
-  isConcluded?: boolean | null,
 ): string | null {
   if (!start && !end) return null;
   const fmt = (y: number) => (y < 0 ? `${Math.abs(y)} a.C.` : `${y}`);
-  if (start && end) return `${fmt(start)} — ${fmt(end)}`;
-  if (start && !isConcluded) return `dal ${fmt(start)}`;
+  if (start && end && end !== start) return `${fmt(start)} — ${fmt(end)}`;
   if (start) return `${fmt(start)}`;
   return null;
 }

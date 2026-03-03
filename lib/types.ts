@@ -52,7 +52,6 @@ export interface NodeBase {
   color: ColorField | null;
   year: number;
   endYear: number | null;
-  concluded: boolean | null;
   visibility: Visibility;
   eventType: EventType;
 }

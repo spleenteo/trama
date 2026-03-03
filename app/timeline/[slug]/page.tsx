@@ -11,9 +11,15 @@ import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
 
+interface ChildWithGrandchildren {
+  id: string;
+  children?: { id: string }[];
+}
+
 interface NodeResult {
   node: (NodeTreeType & {
     parent?: { id: string; slug: string } | null;
+    children: ChildWithGrandchildren[];
   }) | null;
 }
 interface TreeResult {
@@ -43,7 +49,16 @@ export default async function TimelinePage({ params, searchParams }: Props) {
     performRequest<ChildNodesResult>(CHILD_NODES_QUERY, { parentId: node.id }),
   ]);
 
-  const childEvents = extractChildEvents(node.children);
+  // Separate sub-contexts (children that have their own children) from leaf events
+  const subContextIds = new Set(
+    node.children
+      .filter((c) => (c.children?.length ?? 0) > 0)
+      .map((c) => c.id)
+  );
+  const leafEvents = allNodes.filter((n) => !subContextIds.has(n.id));
+  const subContexts = node.children.filter((c) => subContextIds.has(c.id));
+
+  const childEvents = extractChildEvents(subContexts);
 
   return (
     <div className="flex flex-col h-screen bg-stone-50 overflow-hidden">
@@ -78,7 +93,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
         <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
           <TimelineCanvas
             context={node}
-            events={allNodes}
+            events={leafEvents}
             childEvents={childEvents}
             initialEventSlug={eventSlug}
           />

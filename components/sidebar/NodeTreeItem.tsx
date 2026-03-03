@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { NodeTree } from '@/lib/types';
 import { formatYearRange } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
+import { useTimelineStore } from '@/lib/store';
 
 interface Props {
   node: NodeTree;
@@ -14,12 +15,13 @@ interface Props {
 
 export default function NodeTreeItem({ node, activeSlug, depth = 0 }: Props) {
   const router = useRouter();
+  const setSelectedEvent = useTimelineStore((s) => s.setSelectedEvent);
   const [expanded, setExpanded] = useState(depth === 0 || node.slug === activeSlug);
-  const hasChildren = node.children.length > 0;
+  const hasChildren = node.children.some((c) => c.children.length > 0);
   const isActive = node.slug === activeSlug;
   const accentColor = getAccentColor(node.color);
 
-  const rangeLabel = formatYearRange(node.year, node.endYear, node.concluded);
+  const rangeLabel = formatYearRange(node.year, node.endYear);
 
   return (
     <div>
@@ -69,19 +71,35 @@ export default function NodeTreeItem({ node, activeSlug, depth = 0 }: Props) {
             </span>
           )}
         </div>
+
+        {/* Info button — opens detail panel without navigating */}
+        <button
+          className="shrink-0 w-5 h-5 flex items-center justify-center rounded text-stone-300 opacity-0 group-hover:opacity-100 hover:text-stone-600 hover:bg-stone-100 transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedEvent(node.id);
+          }}
+          aria-label={`Info: ${node.title}`}
+        >
+          <svg viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+            <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2ZM7 7h2v5H7V7Z" />
+          </svg>
+        </button>
       </div>
 
       {/* Children */}
       {hasChildren && expanded && (
         <div>
-          {node.children.map((child) => (
-            <NodeTreeItem
-              key={child.id}
-              node={child}
-              activeSlug={activeSlug}
-              depth={depth + 1}
-            />
-          ))}
+          {node.children
+            .filter((child) => child.children.length > 0)
+            .map((child) => (
+              <NodeTreeItem
+                key={child.id}
+                node={child}
+                activeSlug={activeSlug}
+                depth={depth + 1}
+              />
+            ))}
         </div>
       )}
     </div>

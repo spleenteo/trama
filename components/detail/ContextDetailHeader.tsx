@@ -1,7 +1,6 @@
 import type { NodeTree } from '@/lib/types';
 import { formatTimelineDate } from '@/lib/timeline/date-utils';
 import { getAccentColor } from '@/lib/utils/color';
-import StatusBadge from '@/components/shared/StatusBadge';
 
 interface Props {
   context: NodeTree;
@@ -10,18 +9,16 @@ interface Props {
 }
 
 export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxYear }: Props) {
-  const { title, color, year, endYear, concluded } = context;
+  const { title, color, year, endYear } = context;
   const accentColor = getAccentColor(color);
 
   const startYear = eventsMinYear ?? year;
   const computedEnd = eventsMaxYear ?? endYear;
-  const currentYear = new Date().getFullYear();
 
   const rangeLabel = (() => {
     if (!startYear) return null;
     const startStr = formatTimelineDate(startYear);
-    if (concluded && computedEnd) return `${startStr} — ${formatTimelineDate(computedEnd)}`;
-    if (!concluded) return `${startStr} — oggi (${currentYear})`;
+    if (computedEnd && computedEnd !== startYear) return `${startStr} — ${formatTimelineDate(computedEnd)}`;
     return startStr;
   })();
 
@@ -40,7 +37,6 @@ export default function ContextDetailHeader({ context, eventsMinYear, eventsMaxY
           <p className="text-xs text-stone-400 font-mono mt-0.5">{rangeLabel}</p>
         )}
       </div>
-      <StatusBadge concluded={concluded} className="shrink-0" />
     </div>
   );
 }
