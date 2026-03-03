@@ -170,7 +170,7 @@ const EVENT_MODEL   = "Vg_FXz7USqmlzYQl8sMKVw";
 ### Fase 5 — Esecuzione (A5)
 
 ```bash
-cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=73cf92a8063412336c282a6f085a23 npx tsx scripts/seed-[tema].ts
+cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=$DATOCMS_API_TOKEN npx tsx scripts/seed-[tema].ts
 ```
 
 Riportare all'utente:
@@ -187,7 +187,7 @@ Riportare all'utente:
 Context model ID : OdF30qLZRyWRfVMi_8lTjg
 Event model ID   : Vg_FXz7USqmlzYQl8sMKVw
 Tag model ID     : Ys2Ty3MBTpa2_Bo2UFjRLA
-API token        : 73cf92a8063412336c282a6f085a23
+API token        : (set via DATOCMS_API_TOKEN env var)
 ```
 
 **Enum values:**

@@ -1,6 +1,6 @@
 import { buildClient } from "@datocms/cma-client-node";
 
-const client = buildClient({ apiToken: "73cf92a8063412336c282a6f085a23" });
+const client = buildClient({ apiToken: process.env.DATOCMS_API_TOKEN ?? "" });
 
 const NODE_MODEL = "JbziKHLoTUCdJCdTZwWWlg";
 
