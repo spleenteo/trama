@@ -83,6 +83,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   widthRef.current = width;
 
   const setSelectedEvent = useTimelineStore((s) => s.setSelectedEvent);
+  const selectedEventId = useTimelineStore((s) => s.selectedEventId);
 
   const { minYear, maxYear } = computeTimelineRange(
     events,
@@ -144,17 +145,84 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     }
   }, [width, minYear, maxYear]);
 
-  // Init selected event from URL param (N11b) — run only once on mount.
-  // router.replace() in EventDetailPanel updates searchParams which re-renders
-  // the server component and changes initialEventSlug. Without the guard, the
-  // effect re-fires calling setSelectedEvent(same id) which toggles the panel closed.
+  // Init selected event from URL param — run only once on mount.
+  // urlInitDone must be set to true unconditionally on first run, even when
+  // initialEventSlug is absent. If we returned early before setting the flag,
+  // the guard would remain false; later when router.replace() adds ?event=slug
+  // the effect would re-fire, call setSelectedEvent (a toggle), and close the panel.
   const urlInitDone = useRef(false);
   useEffect(() => {
-    if (urlInitDone.current || !initialEventSlug) return;
+    if (urlInitDone.current) return;
     urlInitDone.current = true;
+    if (!initialEventSlug) return;
     const match = events.find((e) => e.slug === initialEventSlug);
     if (match) setSelectedEvent(match.id);
   }, [initialEventSlug, events, setSelectedEvent]);
+
+  // ─── Center viewport on selected element ─────────────────────────────────
+  type EnrichedChild = NodeTree & { computedMin?: number; computedMax?: number };
+  const lastCenteredId = useRef<string | null>(null);
+  useEffect(() => {
+    if (!selectedEventId) { lastCenteredId.current = null; return; }
+    if (selectedEventId === lastCenteredId.current) return;
+    lastCenteredId.current = selectedEventId;
+
+    let centerYear: number | null = null;
+
+    // Leaf event
+    const leafEv = events.find((e) => e.id === selectedEventId);
+    if (leafEv) {
+      const start = eventToFractionalYear(leafEv);
+      const end = leafEv.endYear != null
+        ? eventToFractionalYear({ year: leafEv.endYear, month: leafEv.endMonth, day: leafEv.endDay })
+        : start;
+      centerYear = (start + end) / 2;
+    }
+
+    // Sub-context bar (enriched with computedMin/computedMax at runtime)
+    if (centerYear == null) {
+      const child = (context.children as EnrichedChild[]).find((c) => c.id === selectedEventId);
+      if (child) {
+        const s = child.computedMin ?? child.year;
+        const e = child.computedMax ?? child.endYear ?? child.year;
+        centerYear = (s + e) / 2;
+      }
+    }
+
+    // Promoted child event
+    if (centerYear == null) {
+      const ce = childEvents?.find((e) => e.id === selectedEventId);
+      if (ce) centerYear = eventToFractionalYear(ce);
+    }
+
+    // Main context bar
+    if (centerYear == null && context.id === selectedEventId) {
+      centerYear = (minYear + maxYear) / 2;
+    }
+
+    // Sibling bar
+    if (centerYear == null) {
+      const sib = siblings?.find((s) => s.id === selectedEventId);
+      if (sib) centerYear = ((sib.year) + (sib.endYear ?? sib.year)) / 2;
+    }
+
+    if (centerYear == null) return;
+
+    const targetVS = clampVS(
+      centerYear - widthRef.current / 2 / ppyRef.current,
+      ppyRef.current,
+      widthRef.current,
+    );
+    const fromVS = vpRef.current;
+    if (Math.abs(fromVS - targetVS) < 0.5 / ppyRef.current) return; // already centered
+    animate(0, 1, {
+      duration: 0.5,
+      ease: [...TIMELINE_EASE],
+      onUpdate: (t) => setViewportStart(fromVS + (targetVS - fromVS) * t),
+      onComplete: () => setViewportStart(targetVS),
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedEventId]);
 
   // ─── Wheel zoom ───────────────────────────────────────────────────────────
   useEffect(() => {
