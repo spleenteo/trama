@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { title, year, endYear, visibility, parent } = body;
+  const { title, year, endYear, month, day, endMonth, endDay, visibility, parent } = body;
 
   if (!title || typeof title !== 'string' || !title.trim()) {
     return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -37,6 +37,10 @@ export async function POST(request: Request) {
       slug: slugify(title.trim()),
       year: Number(year),
       end_year: endYear != null && endYear !== '' ? Number(endYear) : null,
+      month: month != null ? Number(month) : null,
+      day: day != null ? Number(day) : null,
+      end_month: endMonth != null ? Number(endMonth) : null,
+      end_day: endDay != null ? Number(endDay) : null,
       visibility: visibility || 'regular',
       event_type: 'event',
       ...(parent ? { parent_id: parent } : {}),

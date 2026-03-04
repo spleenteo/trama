@@ -15,6 +15,10 @@ export default function CreateEventModal({ parentId, open, onClose, onCreated }:
   const [title, setTitle] = useState('');
   const [year, setYear] = useState('');
   const [endYear, setEndYear] = useState('');
+  const [month, setMonth] = useState('');
+  const [day, setDay] = useState('');
+  const [endMonth, setEndMonth] = useState('');
+  const [endDay, setEndDay] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('regular');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -23,6 +27,10 @@ export default function CreateEventModal({ parentId, open, onClose, onCreated }:
     setTitle('');
     setYear('');
     setEndYear('');
+    setMonth('');
+    setDay('');
+    setEndMonth('');
+    setEndDay('');
     setVisibility('regular');
     setError(null);
   }
@@ -49,6 +57,10 @@ export default function CreateEventModal({ parentId, open, onClose, onCreated }:
           title: title.trim(),
           year: Number(year),
           endYear: endYear ? Number(endYear) : null,
+          month: month ? Number(month) : null,
+          day: day ? Number(day) : null,
+          endMonth: endMonth ? Number(endMonth) : null,
+          endDay: endDay ? Number(endDay) : null,
           visibility,
           parent: parentId,
         }),
@@ -88,7 +100,7 @@ export default function CreateEventModal({ parentId, open, onClose, onCreated }:
           {/* Modal */}
           <motion.form
             onSubmit={handleSubmit}
-            className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm mx-4 flex flex-col gap-4"
+            className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4 flex flex-col gap-4"
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
@@ -107,26 +119,91 @@ export default function CreateEventModal({ parentId, open, onClose, onCreated }:
               />
             </label>
 
-            <div className="flex gap-3">
-              <label className="flex flex-col gap-1 flex-1">
-                <span className="text-xs font-medium text-stone-500">Anno inizio *</span>
+            {/* Inizio */}
+            <fieldset className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-stone-500">Inizio *</span>
+              <div className="flex gap-2">
                 <input
                   type="number"
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
-                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  placeholder="Anno"
+                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 w-24"
                 />
-              </label>
-              <label className="flex flex-col gap-1 flex-1">
-                <span className="text-xs font-medium text-stone-500">Anno fine</span>
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="border border-stone-300 rounded-lg px-2 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 bg-white flex-1"
+                >
+                  <option value="">Mese</option>
+                  <option value="1">Gen</option>
+                  <option value="2">Feb</option>
+                  <option value="3">Mar</option>
+                  <option value="4">Apr</option>
+                  <option value="5">Mag</option>
+                  <option value="6">Giu</option>
+                  <option value="7">Lug</option>
+                  <option value="8">Ago</option>
+                  <option value="9">Set</option>
+                  <option value="10">Ott</option>
+                  <option value="11">Nov</option>
+                  <option value="12">Dic</option>
+                </select>
+                <select
+                  value={day}
+                  onChange={(e) => setDay(e.target.value)}
+                  className="border border-stone-300 rounded-lg px-2 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 bg-white w-20"
+                >
+                  <option value="">Giorno</option>
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                  ))}
+                </select>
+              </div>
+            </fieldset>
+
+            {/* Fine */}
+            <fieldset className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-stone-500">Fine</span>
+              <div className="flex gap-2">
                 <input
                   type="number"
                   value={endYear}
                   onChange={(e) => setEndYear(e.target.value)}
-                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400"
+                  placeholder="Anno"
+                  className="border border-stone-300 rounded-lg px-3 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 w-24"
                 />
-              </label>
-            </div>
+                <select
+                  value={endMonth}
+                  onChange={(e) => setEndMonth(e.target.value)}
+                  className="border border-stone-300 rounded-lg px-2 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 bg-white flex-1"
+                >
+                  <option value="">Mese</option>
+                  <option value="1">Gen</option>
+                  <option value="2">Feb</option>
+                  <option value="3">Mar</option>
+                  <option value="4">Apr</option>
+                  <option value="5">Mag</option>
+                  <option value="6">Giu</option>
+                  <option value="7">Lug</option>
+                  <option value="8">Ago</option>
+                  <option value="9">Set</option>
+                  <option value="10">Ott</option>
+                  <option value="11">Nov</option>
+                  <option value="12">Dic</option>
+                </select>
+                <select
+                  value={endDay}
+                  onChange={(e) => setEndDay(e.target.value)}
+                  className="border border-stone-300 rounded-lg px-2 py-2 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-stone-400 bg-white w-20"
+                >
+                  <option value="">Giorno</option>
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{i + 1}</option>
+                  ))}
+                </select>
+              </div>
+            </fieldset>
 
             <label className="flex flex-col gap-1">
               <span className="text-xs font-medium text-stone-500">Visibilit&agrave;</span>
