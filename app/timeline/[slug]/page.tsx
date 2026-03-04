@@ -86,6 +86,19 @@ export default async function TimelinePage({ params, searchParams }: Props) {
   // Enrich context node: use rootTree's version of current node's children (has full tree depth)
   // and attach computedMin/computedMax from rangeMap
   const treeNode = rootTree ? findNodeInTree(rootTree, node.id) : null;
+  // Build a map of contextId -> event dots (year + visibility) for each sub-context
+  const eventDotsMap = new Map<string, { year: number; visibility: string }[]>();
+  for (const child of (treeNode?.children ?? [])) {
+    if (!subContextIds.has(child.id)) continue;
+    const dots = (child.children ?? [])
+      .filter((gc: { year: number }) => gc.year != null)
+      .map((gc: { year: number; visibility: string }) => ({
+        year: gc.year,
+        visibility: gc.visibility ?? 'regular',
+      }));
+    if (dots.length > 0) eventDotsMap.set(child.id, dots);
+  }
+
   const enrichedContext = {
     ...node,
     children: (treeNode?.children ?? node.children).filter((c) => subContextIds.has(c.id)).map((c) => {
@@ -129,6 +142,7 @@ export default async function TimelinePage({ params, searchParams }: Props) {
               childEvents={childEvents}
               initialEventSlug={eventSlug}
               siblings={siblings}
+              eventDotsMap={eventDotsMap}
             />
             <EventDetailPanel />
             <SiblingResetEffect slug={slug} />
