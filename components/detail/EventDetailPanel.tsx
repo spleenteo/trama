@@ -142,8 +142,8 @@ export default function EventDetailPanel() {
                   </div>
                 )}
 
-                <EventDetailMedia media={node.media} />
-                <EventDetailLinks links={node.externalLinks ?? []} />
+                <EventDetailMedia blocks={node.additionalContent} />
+                <EventDetailLinks blocks={node.additionalContent} />
                 <EventDetailCustomFields fields={node.customFields ?? []} />
 
                 {/* Related nodes */}

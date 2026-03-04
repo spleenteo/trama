@@ -22,6 +22,7 @@ export const NODE_SUMMARY_FIELDS_FRAGMENT = /* GraphQL */ `
     endYear
     endMonth
     endDay
+    toPresent
     visibility
     eventType
     color { hex }

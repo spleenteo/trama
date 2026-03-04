@@ -8,16 +8,20 @@ interface Props {
   childEvents: ChildEvent[];
 }
 
+const THIS_YEAR = new Date().getFullYear();
+
 // Derive a usable [start, end] range for a root node.
 // If the root has no end date, fall back to the max of its sub-nodes.
 function deriveRange(r: NodeCard): { start: number; end: number | null } {
+  if (r.toPresent) {
+    return { start: r.year, end: THIS_YEAR };
+  }
   if (r.endYear != null) {
     return { start: r.year, end: r.endYear };
   }
 
   const ends = r.children
-    .map((c) => c.endYear)
-    .filter((y): y is number => y != null);
+    .flatMap((c) => c.toPresent ? [THIS_YEAR] : c.endYear != null ? [c.endYear] : []);
 
   if (ends.length > 0) {
     return { start: r.year, end: Math.max(...ends) };
@@ -46,6 +50,7 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
     color: null,
     year: minStart,
     endYear: maxEnd,
+    toPresent: false,
     visibility: 'super',
     eventType: 'event',
     description: null,
@@ -59,6 +64,7 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
         color: r.color,
         year: start,
         endYear: end,
+        toPresent: r.toPresent,
         visibility: r.visibility,
         eventType: r.eventType,
         description: null,
@@ -69,7 +75,8 @@ function buildUniverseContext(roots: NodeCard[]): NodeTree {
           slug: c.slug,
           color: c.color,
           year: c.year,
-          endYear: c.endYear,
+          endYear: c.toPresent ? THIS_YEAR : c.endYear,
+          toPresent: c.toPresent,
           visibility: c.visibility,
           eventType: c.eventType,
           description: null,

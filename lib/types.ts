@@ -20,6 +20,21 @@ export interface ColorField {
   hex: string;
 }
 
+export interface LatLonField {
+  latitude: number;
+  longitude: number;
+}
+
+export interface VideoField {
+  provider: string;
+  providerUid: string;
+  url: string;
+  thumbnailUrl: string;
+  title: string | null;
+  width: number;
+  height: number;
+}
+
 // ─── Tag ─────────────────────────────────────────────────────────────────────
 
 export interface Tag {
@@ -29,15 +44,17 @@ export interface Tag {
   color: ColorField | null;
 }
 
+// ─── Additional content blocks ───────────────────────────────────────────────
+
+export type AdditionalContentBlock =
+  | { __typename: 'LinkRecord'; id: string; name: string; url: string }
+  | { __typename: 'PhotoGalleryRecord'; id: string; gallery: FileField[] }
+  | { __typename: 'VideoRecord'; id: string; video: VideoField };
+
 // ─── Node (unified model) ────────────────────────────────────────────────────
 
 export type Visibility = 'regular' | 'main' | 'super';
 export type EventType = 'event' | 'incident' | 'key_moment';
-
-export interface ExternalLink {
-  url: string;
-  label: string;
-}
 
 export interface CustomField {
   key: string;
@@ -52,6 +69,7 @@ export interface NodeBase {
   color: ColorField | null;
   year: number;
   endYear: number | null;
+  toPresent: boolean;
   visibility: Visibility;
   eventType: EventType;
 }
@@ -89,12 +107,9 @@ export interface NodeCard extends NodeBase {
 /** Full node detail — for the detail panel */
 export interface NodeDetail extends NodeSummary {
   description: object | null; // DAST value
-  media: FileField[];
-  externalLinks: ExternalLink[] | null;
+  location: LatLonField | null;
+  additionalContent: AdditionalContentBlock[];
   customFields: CustomField[] | null;
-  latitude: number | null;
-  longitude: number | null;
-  number: number | null;
   parent: { id: string; title: string; slug: string; color: ColorField | null } | null;
   relatedNodes: Array<{
     id: string;
