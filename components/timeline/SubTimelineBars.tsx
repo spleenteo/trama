@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import type { NodeBase } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { formatYearRange } from '@/lib/timeline/date-utils';
+import { useDrag } from '@/lib/timeline/drag-context';
 
 interface ChildWithRange extends NodeBase {
   computedMin?: number | null;
@@ -43,6 +44,7 @@ export function visibleBarWidth(barX1: number, barX2: number, viewportWidth: num
 
 export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY, onSelectInfo }: Props) {
   const router = useRouter();
+  const { state: dragState } = useDrag();
 
   const visible = children.filter((c) => {
     const start = c.computedMin ?? c.year;
@@ -66,6 +68,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         const barY = axisY - AXIS_CLEARANCE - BAR_HEIGHT - i * SLOT_HEIGHT;
         const color = child.color?.hex ?? '#9ca3af';
         const isNavigable = (child.children?.length ?? 0) > 0;
+        const isDropTarget = dragState.draggingEventId != null && dragState.dropTargetId === child.id;
 
         // Sticky label position
         const labelX = clampLabelX(rawX1, rawX2, width);
@@ -127,17 +130,20 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               role={isNavigable ? 'button' : undefined}
               aria-label={isNavigable ? `Naviga in: ${child.title}` : child.title}
               style={{ pointerEvents: 'auto' }}
+              data-drop-id={child.id}
             >
               {isNavigable && <title>{`${child.title} — clicca per navigare`}</title>}
               {/* Hit area covers bar + label */}
-              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" />
+              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={child.id} />
               {/* Bar */}
               <rect
                 x={x1} y={barY}
                 width={barWidth} height={BAR_HEIGHT}
                 rx={BAR_HEIGHT / 2}
-                fill={color}
-                opacity={0.55}
+                fill={isDropTarget ? '#3b82f6' : color}
+                opacity={isDropTarget ? 0.7 : 0.55}
+                stroke={isDropTarget ? '#3b82f6' : 'none'}
+                strokeWidth={isDropTarget ? 2 : 0}
               />
               {/* Label above bar: name left, range right */}
               {showLabel && (() => {

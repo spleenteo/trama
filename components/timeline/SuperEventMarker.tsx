@@ -1,10 +1,14 @@
 'use client';
 
+import { useRef, useCallback } from 'react';
 import type { NodeSummary } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { eventToFractionalYear, formatTimelineDate } from '@/lib/timeline/date-utils';
 import { DEFAULT_ACCENT } from '@/lib/utils/color';
 import { MARKER_RADIUS } from '@/lib/timeline/constants';
+import { useDrag } from '@/lib/timeline/drag-context';
+
+const LONG_PRESS_MS = 500;
 
 interface Props {
   event: NodeSummary;
@@ -97,15 +101,49 @@ export default function SuperEventMarker({
   const date = formatTimelineDate(event.year, event.month, event.day);
   const label = typeLabel(event.eventType);
 
+  const { state: dragState, startDrag } = useDrag();
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didDrag = useRef(false);
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    didDrag.current = false;
+    longPressTimer.current = setTimeout(() => {
+      didDrag.current = true;
+      startDrag(event.id);
+    }, LONG_PRESS_MS);
+  }, [event.id, startDrag]);
+
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (didDrag.current) return; // suppress click after drag
+    onSelect(event.id);
+  }, [event.id, onSelect]);
+
+  const isDragging = dragState.draggingEventId === event.id;
+  const isDropTarget = dragState.draggingEventId != null
+    && dragState.draggingEventId !== event.id
+    && dragState.dropTargetId === event.id;
+
   return (
     <g
-      className="cursor-pointer"
-      onClick={(e) => { e.stopPropagation(); onSelect(event.id); }}
+      className={isDragging ? 'cursor-grabbing' : 'cursor-pointer'}
+      onClick={handleClick}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
       onMouseEnter={() => onHover(event.id)}
       onMouseLeave={() => onHover(null)}
       role="button"
       aria-label={`${event.title} — ${date}`}
-      style={{ pointerEvents: 'auto' }}
+      style={{ pointerEvents: 'auto', opacity: isDragging ? 0.4 : 1 }}
+      data-drop-id={event.id}
     >
       <title>{`${event.title} — ${date}`}</title>
 
@@ -119,14 +157,16 @@ export default function SuperEventMarker({
         width={SUPER_CARD_W}
         height={cardH}
         rx={CARD_R}
-        fill="white"
-        stroke={color}
-        strokeWidth={isHovered ? 1.5 : 1}
-        strokeOpacity={isHovered ? 0.7 : 0.3}
+        fill={isDropTarget ? '#dbeafe' : 'white'}
+        stroke={isDropTarget ? '#3b82f6' : color}
+        strokeWidth={isDropTarget ? 2.5 : isHovered ? 1.5 : 1}
+        strokeOpacity={isDropTarget ? 1 : isHovered ? 0.7 : 0.3}
         style={{
-          filter: isHovered
-            ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.18))'
-            : 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))',
+          filter: isDropTarget
+            ? 'drop-shadow(0 0 6px rgba(59,130,246,0.4))'
+            : isHovered
+              ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.18))'
+              : 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))',
         }}
       />
 
