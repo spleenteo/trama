@@ -23,6 +23,11 @@ import { TIMELINE_EASE } from '@/lib/timeline/constants';
 import { assignLevels } from '@/lib/timeline/collision';
 import { useDrag } from '@/lib/timeline/drag-context';
 
+export interface EventDot {
+  year: number;
+  visibility: string;
+}
+
 interface Props {
   context: NodeTree;
   events: NodeSummary[];
@@ -30,6 +35,7 @@ interface Props {
   initialEventSlug?: string;
   showContextBar?: boolean;
   siblings?: NodeTree[];
+  eventDotsMap?: Map<string, EventDot[]>;
 }
 
 const ZOOM_FACTOR = 1.4;
@@ -58,7 +64,7 @@ function clampVS(vs: number, ppy: number, viewportWidth: number): number {
   return Math.max(MIN_YEAR, Math.min(MAX_YEAR - viewportRange, vs));
 }
 
-export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true, siblings }: Props) {
+export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true, siblings, eventDotsMap }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [canvasHeight, setCanvasHeight] = useState(0);
@@ -388,6 +394,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
               width={width}
               axisY={axisY}
               onSelectInfo={setSelectedEvent}
+              eventDotsMap={eventDotsMap}
             />
 
             {/* Clustered events */}

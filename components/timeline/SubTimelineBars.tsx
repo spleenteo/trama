@@ -5,6 +5,7 @@ import type { NodeBase } from '@/lib/types';
 import { yearToPixel } from '@/lib/timeline/scale';
 import { formatYearRange } from '@/lib/timeline/date-utils';
 import { useDrag } from '@/lib/timeline/drag-context';
+import type { EventDot } from '@/components/timeline/TimelineCanvas';
 
 interface ChildWithRange extends NodeBase {
   computedMin?: number | null;
@@ -19,6 +20,7 @@ interface Props {
   width: number;
   axisY: number;
   onSelectInfo?: (id: string) => void;
+  eventDotsMap?: Map<string, EventDot[]>;
 }
 
 const BAR_HEIGHT = 16;
@@ -42,7 +44,11 @@ export function visibleBarWidth(barX1: number, barX2: number, viewportWidth: num
   return Math.min(barX2, viewportWidth) - Math.max(barX1, 0);
 }
 
-export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY, onSelectInfo }: Props) {
+const DOT_Y_OFFSET = 6; // space below the bar for dots
+const DOT_R_REGULAR = 2;
+const DOT_R_PROMOTED = 3.5;
+
+export default function SubTimelineBars({ children, viewportStart, pixelsPerYear, width, axisY, onSelectInfo, eventDotsMap }: Props) {
   const router = useRouter();
   const { state: dragState } = useDrag();
 
@@ -181,6 +187,24 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
                 );
               })()}
             </g>
+
+            {/* Event dots below the bar */}
+            {eventDotsMap?.get(child.id)?.map((dot, di) => {
+              const dotX = yearToPixel(dot.year, viewportStart, pixelsPerYear);
+              if (dotX < -4 || dotX > width + 4) return null;
+              const promoted = dot.visibility === 'main' || dot.visibility === 'super';
+              const r = promoted ? DOT_R_PROMOTED : DOT_R_REGULAR;
+              return (
+                <circle
+                  key={di}
+                  cx={dotX}
+                  cy={barY + BAR_HEIGHT + DOT_Y_OFFSET + r}
+                  r={r}
+                  fill={color}
+                  opacity={promoted ? 0.9 : 0.35}
+                />
+              );
+            })}
           </g>
         );
       })}
