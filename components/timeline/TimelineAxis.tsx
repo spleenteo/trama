@@ -26,7 +26,7 @@ function AxisContent({
   if (width <= 0) return null;
 
   const viewportEnd = viewportStart + width / pixelsPerYear;
-  const labels = getAxisLabels(viewportStart, viewportEnd, width);
+  const { labels, step } = getAxisLabels(viewportStart, viewportEnd, width);
 
   const presentX = yearToPixel(CURRENT_YEAR, viewportStart, pixelsPerYear);
   const showPresent = presentX >= 0 && presentX <= width;
@@ -37,24 +37,33 @@ function AxisContent({
       <line x1={0} y1={axisY} x2={width} y2={axisY} stroke="#d1d5db" strokeWidth={1} />
 
       {/* Labels + ticks */}
-      {labels.map((lbl) => (
-        <g key={lbl.year} transform={`translate(${lbl.x}, 0)`}>
-          <line
-            x1={0} y1={axisY - TICK_MAJOR}
-            x2={0} y2={axisY + TICK_MINOR}
-            stroke="#9ca3af" strokeWidth={1}
-          />
-          <text
-            y={axisY - TICK_MAJOR - 4}
-            textAnchor="middle"
-            fontSize={13}
-            fill="#6b7280"
-            fontFamily="ui-monospace, monospace"
-          >
-            {lbl.label}
-          </text>
-        </g>
-      ))}
+      {labels.map((lbl) => {
+        // Position is stable: based on year rank (not array index), so labels
+        // don't jump when the visible set changes during pan/zoom.
+        const rank = Math.round(lbl.year / step);
+        const above = rank % 2 === 0;
+        const labelY = above
+          ? axisY - TICK_MAJOR - 4
+          : axisY + TICK_MINOR + 14;
+        return (
+          <g key={lbl.year} transform={`translate(${lbl.x}, 0)`}>
+            <line
+              x1={0} y1={axisY - TICK_MAJOR}
+              x2={0} y2={axisY + TICK_MINOR}
+              stroke="#9ca3af" strokeWidth={1}
+            />
+            <text
+              y={labelY}
+              textAnchor="middle"
+              fontSize={13}
+              fill="#6b7280"
+              fontFamily="ui-monospace, monospace"
+            >
+              {lbl.label}
+            </text>
+          </g>
+        );
+      })}
 
       {/* Present marker */}
       {showPresent && (
