@@ -30,7 +30,9 @@
       "mcp__datocms__view_script",
       "Bash(rm:*)",
       "Bash(/bin/rm:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mv:*)",
+      "Bash(npx next:*)"
     ]
   }
 }
