@@ -35,8 +35,28 @@ interface Props {
 const ZOOM_FACTOR = 1.4;
 
 const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scroll
-const MIN_PPY = 1e-12;
 const MAX_PPY = 400;
+
+// Hard universe bounds — Big Bang to Big Rip
+const MIN_YEAR = -13_800_000_000;
+const MAX_YEAR =  20_000_000_000;
+const UNIVERSE_RANGE = MAX_YEAR - MIN_YEAR; // 33.8 billion years
+
+// Minimum zoom: viewport can never show more than the full universe range
+function minPPY(viewportWidth: number): number {
+  return viewportWidth / UNIVERSE_RANGE;
+}
+
+function clampPPY(ppy: number, viewportWidth: number): number {
+  return Math.min(MAX_PPY, Math.max(minPPY(viewportWidth), ppy));
+}
+
+function clampVS(vs: number, ppy: number, viewportWidth: number): number {
+  const viewportRange = viewportWidth / ppy;
+  // If viewport is at max zoom-out, pin to MIN_YEAR
+  if (viewportRange >= UNIVERSE_RANGE) return MIN_YEAR;
+  return Math.max(MIN_YEAR, Math.min(MAX_YEAR - viewportRange, vs));
+}
 
 export default function TimelineCanvas({ context, events, childEvents, initialEventSlug, showContextBar = true, siblings }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -141,9 +161,9 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
       const cursorYear = pixelToYear(cursorX, vpRef.current, ppyRef.current);
       // Proportional zoom: small deltaY = small step (smooth trackpad), large deltaY = bigger step (mouse)
       const delta = Math.pow(WHEEL_BASE, -e.deltaY);
-      const newPPY = Math.min(MAX_PPY, Math.max(MIN_PPY, ppyRef.current * delta));
+      const newPPY = clampPPY(ppyRef.current * delta, widthRef.current);
       setPixelsPerYear(newPPY);
-      setViewportStart(cursorYear - cursorX / newPPY);
+      setViewportStart(clampVS(cursorYear - cursorX / newPPY, newPPY, widthRef.current));
     };
     el.addEventListener('wheel', handleWheel, { passive: false });
     return () => el.removeEventListener('wheel', handleWheel);
@@ -217,7 +237,7 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
       if (!dragging || isEventDraggingRef.current) return;
       const dx = e.clientX - lastX;
       lastX = e.clientX;
-      setViewportStart((vs) => vs - dx / ppyRef.current);
+      setViewportStart((vs) => clampVS(vs - dx / ppyRef.current, ppyRef.current, widthRef.current));
     };
     const onUp = () => {
       dragging = false;
@@ -239,9 +259,9 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   // ─── Zoom buttons ─────────────────────────────────────────────────────────
   const zoomBy = useCallback((factor: number) => {
     const centre = vpRef.current + widthRef.current / 2 / ppyRef.current;
-    const newPPY = Math.min(MAX_PPY, Math.max(MIN_PPY, ppyRef.current * factor));
+    const newPPY = clampPPY(ppyRef.current * factor, widthRef.current);
     setPixelsPerYear(newPPY);
-    setViewportStart(centre - widthRef.current / 2 / newPPY);
+    setViewportStart(clampVS(centre - widthRef.current / 2 / newPPY, newPPY, widthRef.current));
   }, []);
 
   // ─── Zoom to cluster ──────────────────────────────────────────────────────

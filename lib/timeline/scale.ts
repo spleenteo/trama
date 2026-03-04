@@ -24,12 +24,17 @@ export interface AxisLabel {
   x: number;
 }
 
+export interface AxisLabelResult {
+  labels: AxisLabel[];
+  step: number;
+}
+
 export function getAxisLabels(
   viewportStart: number,
   viewportEnd: number,
   viewportWidthPx: number,
-  minSpacingPx = 100
-): AxisLabel[] {
+  minSpacingPx = 120
+): AxisLabelResult {
   const range = viewportEnd - viewportStart;
   const pixelsPerYear = viewportWidthPx / range;
   const maxLabels = Math.floor(viewportWidthPx / minSpacingPx);
@@ -46,14 +51,15 @@ export function getAxisLabels(
     });
   }
 
-  return labels;
+  return { labels, step };
 }
 
 function pickStep(range: number, maxLabels: number): number {
   const raw = range / maxLabels;
   const candidates = [
     1, 2, 5, 10, 25, 50, 100, 250, 500, 1_000, 2_000, 5_000, 10_000,
-    50_000, 100_000, 1_000_000, 10_000_000, 100_000_000, 1_000_000_000,
+    50_000, 100_000, 1_000_000, 10_000_000, 100_000_000,
+    1_000_000_000, 2_000_000_000, 5_000_000_000, 10_000_000_000,
   ];
   return candidates.find((c) => c >= raw) ?? candidates[candidates.length - 1];
 }
@@ -64,12 +70,16 @@ function formatAxisYear(year: number, range: number): string {
 
   if (range > 500_000_000) {
     const billions = absYear / 1_000_000_000;
-    return billions >= 1
-      ? `${billions.toFixed(1)} mld anni${suffix}`
-      : `${(absYear / 1_000_000).toFixed(0)} mln anni${suffix}`;
+    if (billions >= 1) {
+      const s = Number.isInteger(billions) ? `${billions}` : `${billions.toFixed(1)}`;
+      return `${s} mld${suffix}`;
+    }
+    return `${(absYear / 1_000_000).toFixed(0)} mln${suffix}`;
   }
   if (range > 1_000_000) {
-    return `${(absYear / 1_000_000).toFixed(1)} mln${suffix}`;
+    const mln = absYear / 1_000_000;
+    const s = Number.isInteger(mln) ? `${mln}` : `${mln.toFixed(1)}`;
+    return `${s} mln${suffix}`;
   }
   if (absYear === 0) return '0';
   if (year < 0) return `${absYear} a.C.`;

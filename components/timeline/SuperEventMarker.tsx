@@ -23,20 +23,22 @@ interface Props {
   onHover: (id: string | null) => void;
 }
 
-export const SUPER_CARD_W = 170;
+export const SUPER_CARD_W = 160;
 export const STEM_BASE = 18;
-export const LEVEL_STEP = 100; // gap between levels (accommodates label row)
+export const LEVEL_STEP = 100;
 export const MARKER_R = MARKER_RADIUS;
 
-const CARD_R = 6;
-const PAD = 8;
-const LINE_H = 16;
-const CHARS_PER_LINE = 22;
-const LABEL_H = 14; // height reserved for the event-type label row
+const CARD_R = 5;
+const PAD_H = 9;
+const PAD_V = 8;
+const LINE_H = 15;
+const MAX_LINES = 2;
+const DATE_H = 13;
+const BORDER_LEFT_W = 4; // thick left border for 'main'
 
-// Word-wrap: splits title into lines of at most CHARS_PER_LINE characters
-function wrapText(text: string, maxChars: number): string[] {
-  const words = text.split(' ');
+// Split title into at most MAX_LINES lines; last line gets ellipsis if truncated
+function clampLines(title: string, maxChars: number): string[] {
+  const words = title.split(' ');
   const lines: string[] = [];
   let current = '';
 
@@ -48,26 +50,20 @@ function wrapText(text: string, maxChars: number): string[] {
     } else {
       lines.push(current);
       current = word;
+      if (lines.length === MAX_LINES - 1) break;
     }
   }
   if (current) lines.push(current);
-  return lines;
-}
 
-function typeLabel(eventType: string): string {
-  switch (eventType) {
-    case 'key_moment': return '★ momento chiave';
-    case 'incident':   return '◆ incidente';
-    default:           return '· evento';
+  // If we broke early, check if there's remaining content
+  const joined = lines.join(' ');
+  if (joined.length < title.length) {
+    const last = lines[lines.length - 1];
+    // Trim last line to fit ellipsis
+    lines[lines.length - 1] = last.slice(0, maxChars - 1) + '…';
   }
-}
 
-function visibilityLabel(visibility: string): string | null {
-  switch (visibility) {
-    case 'super': return 'super';
-    case 'main':  return 'main';
-    default:      return null;
-  }
+  return lines.slice(0, MAX_LINES);
 }
 
 export default function SuperEventMarker({
@@ -90,16 +86,30 @@ export default function SuperEventMarker({
   const color = colorProp ?? DEFAULT_ACCENT;
   const stemEnd = axisY + STEM_BASE + level * LEVEL_STEP;
 
-  const titleLines = wrapText(event.title, CHARS_PER_LINE);
+  const CHARS_PER_LINE = Math.floor((SUPER_CARD_W - PAD_H * 2) / 7); // ~7px per char
+  const titleLines = clampLines(event.title, CHARS_PER_LINE);
+
+  // Card height: top-pad + title lines + gap + date row + bottom-pad
   const titleBlockH = titleLines.length * LINE_H;
-  // card height: label-row(14) + top-pad(12) + title block + gap(4) + date(14) + bottom-pad(8)
-  const cardH = LABEL_H + 12 + titleBlockH + 4 + 14 + 8;
+  const cardH = PAD_V + titleBlockH + 4 + DATE_H + PAD_V;
 
   const cardX = Math.max(4, Math.min(x - SUPER_CARD_W / 2, width - SUPER_CARD_W - 4));
   const cardY = stemEnd + MARKER_R + 5;
 
-  const date = formatTimelineDate(event.year, event.month, event.day);
-  const label = typeLabel(event.eventType);
+  const startDate = formatTimelineDate(event.year, event.month, event.day);
+  const endDate = event.endYear != null
+    ? formatTimelineDate(event.endYear, event.endMonth, event.endDay)
+    : null;
+  const dateText = endDate ? `${startDate} → ${endDate}` : startDate;
+
+  const visibility = event.visibility;
+  const isSuper = visibility === 'super';
+  const isMain = visibility === 'main';
+
+  // Styling per visibility
+  const cardFill = isSuper ? color : 'white';
+  const titleColor = isSuper ? 'white' : '#111827';
+  const dateColor = isSuper ? 'rgba(255,255,255,0.8)' : color;
 
   const { state: dragState, startDrag } = useDrag();
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,7 +132,7 @@ export default function SuperEventMarker({
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    if (didDrag.current) return; // suppress click after drag
+    if (didDrag.current) return;
     onSelect(event.id);
   }, [event.id, onSelect]);
 
@@ -130,6 +140,11 @@ export default function SuperEventMarker({
   const isDropTarget = dragState.draggingEventId != null
     && dragState.draggingEventId !== event.id
     && dragState.dropTargetId === event.id;
+
+  // Stroke/shadow for non-super cards
+  const strokeColor = isDropTarget ? '#3b82f6' : color;
+  const strokeWidth = isDropTarget ? 2.5 : isMain ? 0 : (isHovered ? 1.5 : 1);
+  const strokeOpacity = isDropTarget ? 1 : isHovered ? 0.7 : 0.3;
 
   return (
     <g
@@ -141,77 +156,70 @@ export default function SuperEventMarker({
       onMouseEnter={() => onHover(event.id)}
       onMouseLeave={() => onHover(null)}
       role="button"
-      aria-label={`${event.title} — ${date}`}
+      aria-label={`${event.title} — ${dateText}`}
       style={{ pointerEvents: 'auto', opacity: isDragging ? 0.4 : 1 }}
       data-drop-id={event.id}
     >
-      <title>{`${event.title} — ${date}`}</title>
+      <title>{`${event.title} — ${dateText}`}</title>
 
-      {/* Marker circle at stem end (above all stems — rendered in card layer) */}
+      {/* Marker circle */}
       <circle cx={x} cy={stemEnd} r={MARKER_R} fill={color} stroke="white" strokeWidth={1.5} />
 
-      {/* Card background */}
-      <rect
-        x={cardX}
-        y={cardY}
-        width={SUPER_CARD_W}
-        height={cardH}
-        rx={CARD_R}
-        fill={isDropTarget ? '#dbeafe' : 'white'}
-        stroke={isDropTarget ? '#3b82f6' : color}
-        strokeWidth={isDropTarget ? 2.5 : isHovered ? 1.5 : 1}
-        strokeOpacity={isDropTarget ? 1 : isHovered ? 0.7 : 0.3}
-        style={{
-          filter: isDropTarget
-            ? 'drop-shadow(0 0 6px rgba(59,130,246,0.4))'
-            : isHovered
-              ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.18))'
-              : 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))',
-        }}
-      />
-
-      {/* Hit area covering card */}
-      <rect x={cardX} y={cardY} width={SUPER_CARD_W} height={cardH} fill="transparent" />
-
-      {/* Event type label */}
-      <text
-        x={cardX + PAD}
-        y={cardY + LABEL_H - 2}
-        fontSize={10}
-        fill={color}
-        opacity={0.75}
-        fontFamily="ui-sans-serif, sans-serif"
-        style={{ pointerEvents: 'none' }}
-      >
-        {label}
-      </text>
-
-      {/* Visibility badge */}
-      {visibilityLabel(event.visibility) && (
-        <text
-          x={cardX + SUPER_CARD_W - PAD}
-          y={cardY + LABEL_H - 2}
-          textAnchor="end"
-          fontSize={9}
-          fontWeight="600"
-          fill={color}
-          opacity={0.5}
-          fontFamily="ui-monospace, monospace"
-          style={{ pointerEvents: 'none' }}
-        >
-          {visibilityLabel(event.visibility)}
-        </text>
+      {/* Drop highlight: blue overlay when drop target */}
+      {isDropTarget && (
+        <rect
+          x={cardX} y={cardY}
+          width={SUPER_CARD_W} height={cardH}
+          rx={CARD_R}
+          fill="#dbeafe"
+          stroke="#3b82f6"
+          strokeWidth={2.5}
+          style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.4))' }}
+        />
       )}
 
-      {/* Title — one <text> per wrapped line */}
+      {/* Card background */}
+      {!isDropTarget && (
+        <rect
+          x={cardX} y={cardY}
+          width={SUPER_CARD_W} height={cardH}
+          rx={CARD_R}
+          fill={cardFill}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          strokeOpacity={strokeOpacity}
+          style={{
+            filter: isHovered
+              ? 'drop-shadow(0 3px 8px rgba(0,0,0,0.18))'
+              : 'drop-shadow(0 1px 3px rgba(0,0,0,0.10))',
+          }}
+        />
+      )}
+
+      {/* Main: thick colored left border */}
+      {isMain && !isDropTarget && (
+        <rect
+          x={cardX}
+          y={cardY}
+          width={BORDER_LEFT_W}
+          height={cardH}
+          rx={CARD_R}
+          fill={color}
+        />
+      )}
+
+      {/* Hit area */}
+      <rect x={cardX} y={cardY} width={SUPER_CARD_W} height={cardH} fill="transparent" />
+
+      {/* Title lines */}
       {titleLines.map((line, i) => (
         <text
           key={i}
-          x={cardX + PAD}
-          y={cardY + LABEL_H + 12 + (i + 1) * LINE_H}
+          x={cardX + PAD_H + (isMain && !isDropTarget ? BORDER_LEFT_W + 2 : 0)}
+          y={cardY + PAD_V + (i + 1) * LINE_H - 2}
           fontSize={12}
           fontWeight="600"
-          fill="#111827"
+          fill={isDropTarget ? '#1e40af' : titleColor}
           fontFamily="ui-sans-serif, sans-serif"
           style={{ pointerEvents: 'none' }}
         >
@@ -219,16 +227,16 @@ export default function SuperEventMarker({
         </text>
       ))}
 
-      {/* Date */}
+      {/* Date row */}
       <text
-        x={cardX + PAD}
-        y={cardY + LABEL_H + 12 + titleBlockH + 4 + 14}
-        fontSize={11}
-        fill={color}
+        x={cardX + PAD_H + (isMain && !isDropTarget ? BORDER_LEFT_W + 2 : 0)}
+        y={cardY + PAD_V + titleBlockH + 4 + DATE_H - 2}
+        fontSize={10}
+        fill={isDropTarget ? '#3b82f6' : dateColor}
         fontFamily="ui-sans-serif, sans-serif"
         style={{ pointerEvents: 'none' }}
       >
-        {date}
+        {dateText}
       </text>
     </g>
   );
