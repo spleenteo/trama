@@ -29,13 +29,20 @@ export default function EventDetailMeta({ event, accentColor }: Props) {
       <h2 className="text-lg font-semibold text-stone-900 leading-snug">
         {event.title}
       </h2>
-      {event.endYear && (
+      {(event.toPresent || event.endYear) && (
         <p className="text-xs text-stone-500 mt-1">
-          Fino a {formatTimelineDate(event.endYear, event.endMonth, event.endDay)}
-          {' · '}
-          <span className="text-stone-400">
-            {formatDuration(event.year, event.month, event.endYear, event.endMonth)}
-          </span>
+          {event.toPresent
+            ? 'Fino ad oggi'
+            : `Fino a ${formatTimelineDate(event.endYear!, event.endMonth, event.endDay)}`
+          }
+          {!event.toPresent && event.endYear && (
+            <>
+              {' · '}
+              <span className="text-stone-400">
+                {formatDuration(event.year, event.month, event.endYear, event.endMonth)}
+              </span>
+            </>
+          )}
         </p>
       )}
     </div>

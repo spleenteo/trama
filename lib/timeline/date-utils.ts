@@ -12,15 +12,19 @@ export function eventToFractionalYear(event: {
   return event.year + (dayOfYear - 1) / 365;
 }
 
+const THIS_YEAR = new Date().getFullYear();
+
 export function computeTimelineRange(
   events: NodeSummary[],
   contextYear?: number | null,
   contextEndYear?: number | null,
-  children?: { year: number; endYear?: number | null; computedMin?: number | null; computedMax?: number | null }[],
+  children?: { year: number; endYear?: number | null; toPresent?: boolean; computedMin?: number | null; computedMax?: number | null }[],
 ): { minYear: number; maxYear: number } {
   const years = events.flatMap((e) => {
     const start = eventToFractionalYear(e);
-    const end = e.endYear ? eventToFractionalYear({ year: e.endYear, month: e.endMonth, day: e.endDay }) : start;
+    const end = e.toPresent
+      ? THIS_YEAR
+      : e.endYear ? eventToFractionalYear({ year: e.endYear, month: e.endMonth, day: e.endDay }) : start;
     return [start, end];
   });
 
@@ -28,7 +32,8 @@ export function computeTimelineRange(
     const pts: number[] = [];
     if (c.computedMin != null) pts.push(c.computedMin);
     else pts.push(c.year);
-    if (c.computedMax != null) pts.push(c.computedMax);
+    if (c.toPresent) pts.push(THIS_YEAR);
+    else if (c.computedMax != null) pts.push(c.computedMax);
     else if (c.endYear != null) pts.push(c.endYear);
     return pts;
   });
@@ -75,9 +80,12 @@ export function formatTimelineDate(
 export function formatYearRange(
   start: number | null,
   end: number | null,
+  toPresent?: boolean,
 ): string | null {
-  if (!start && !end) return null;
+  if (!start && !end && !toPresent) return null;
   const fmt = (y: number) => (y < 0 ? `${Math.abs(y)} a.C.` : `${y}`);
+  if (toPresent && start) return `${fmt(start)} — oggi`;
+  if (toPresent) return 'oggi';
   if (start && end && end !== start) return `${fmt(start)} — ${fmt(end)}`;
   if (start) return `${fmt(start)}`;
   return null;

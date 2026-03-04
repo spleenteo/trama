@@ -97,9 +97,11 @@ export default function SuperEventMarker({
   const cardY = stemEnd + MARKER_R + 5;
 
   const startDate = formatTimelineDate(event.year, event.month, event.day);
-  const endDate = event.endYear != null
-    ? formatTimelineDate(event.endYear, event.endMonth, event.endDay)
-    : null;
+  const endDate = event.toPresent
+    ? 'oggi'
+    : event.endYear != null
+      ? formatTimelineDate(event.endYear, event.endMonth, event.endDay)
+      : null;
   const dateText = endDate ? `${startDate} → ${endDate}` : startDate;
 
   const visibility = event.visibility;

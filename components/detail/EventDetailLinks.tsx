@@ -1,11 +1,16 @@
-import type { ExternalLink } from '@/lib/types';
+import type { AdditionalContentBlock } from '@/lib/types';
 
 interface Props {
-  links: ExternalLink[];
+  blocks: AdditionalContentBlock[];
 }
 
-export default function EventDetailLinks({ links }: Props) {
-  if (links.length === 0) return null;
+export default function EventDetailLinks({ blocks }: Props) {
+  const linkBlocks = blocks.filter(
+    (b): b is Extract<AdditionalContentBlock, { __typename: 'LinkRecord' }> =>
+      b.__typename === 'LinkRecord'
+  );
+
+  if (linkBlocks.length === 0) return null;
 
   return (
     <div>
@@ -13,15 +18,15 @@ export default function EventDetailLinks({ links }: Props) {
         Link
       </h3>
       <ul className="space-y-1">
-        {links.map((link, i) => (
-          <li key={i}>
+        {linkBlocks.map((link) => (
+          <li key={link.id}>
             <a
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-blue-600 hover:text-blue-800 hover:underline truncate block"
             >
-              {link.label || link.url}
+              {link.name || link.url}
             </a>
           </li>
         ))}

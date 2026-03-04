@@ -52,9 +52,10 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
   const router = useRouter();
   const { state: dragState } = useDrag();
 
+  const THIS_YEAR = new Date().getFullYear();
   const visible = children.filter((c) => {
     const start = c.computedMin ?? c.year;
-    const end = c.computedMax ?? c.endYear ?? null;
+    const end = c.toPresent ? THIS_YEAR : (c.computedMax ?? c.endYear ?? null);
     return start != null && end != null;
   });
 
@@ -64,7 +65,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
     <g>
       {visible.map((child, i) => {
         const start = child.computedMin ?? child.year;
-        const end = child.computedMax ?? child.endYear ?? child.year;
+        const end = child.toPresent ? THIS_YEAR : (child.computedMax ?? child.endYear ?? child.year);
         const rawX1 = yearToPixel(start, viewportStart, pixelsPerYear);
         const rawX2 = yearToPixel(end, viewportStart, pixelsPerYear);
         const x1 = Math.max(0, rawX1);
@@ -80,7 +81,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         const labelX = clampLabelX(rawX1, rawX2, width);
         const visWidth = visibleBarWidth(rawX1, rawX2, width);
         const showLabel = visWidth > MIN_LABEL_WIDTH;
-        const rangeLabel = formatYearRange(Math.round(start), Math.round(end));
+        const rangeLabel = formatYearRange(Math.round(start), Math.round(end), child.toPresent);
 
         // Info icon
         const infoX = Math.max(rawX1, 0) - INFO_SIZE - 4;

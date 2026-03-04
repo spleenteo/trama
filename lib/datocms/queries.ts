@@ -10,6 +10,7 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
       color { hex }
       year
       endYear
+      toPresent
       visibility
       eventType
       featuredImage {
@@ -24,6 +25,7 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
+        toPresent
         visibility
         eventType
       }
@@ -44,7 +46,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
       featuredImage { responsiveImage { ...imageFields } }
       year
       endYear
-
+      toPresent
       visibility
       eventType
       children {
@@ -54,7 +56,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
-  
+        toPresent
         visibility
         eventType
         children {
@@ -64,7 +66,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
           color { hex }
           year
           endYear
-    
+          toPresent
           visibility
           eventType
           children {
@@ -74,7 +76,7 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
             color { hex }
             year
             endYear
-      
+            toPresent
             visibility
             eventType
           }
@@ -97,6 +99,7 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
       featuredImage { responsiveImage { ...imageFields } }
       year
       endYear
+      toPresent
       visibility
       eventType
       parent {
@@ -111,6 +114,7 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
         color { hex }
         year
         endYear
+        toPresent
         visibility
         eventType
         children { id }
@@ -153,6 +157,7 @@ export const NODE_DETAIL_QUERY = /* GraphQL */ `
       endYear
       endMonth
       endDay
+      toPresent
       visibility
       eventType
       color { hex }
@@ -161,14 +166,40 @@ export const NODE_DETAIL_QUERY = /* GraphQL */ `
       featuredImage {
         responsiveImage(imgixParams: { w: 600 }) { ...imageFields }
       }
-      media { id url title responsiveImage(imgixParams: { w: 400 }) { ...imageFields } }
-      externalLinks
+      location { latitude longitude }
+      additionalContent {
+        ... on LinkRecord {
+          __typename
+          id
+          name
+          url
+        }
+        ... on PhotoGalleryRecord {
+          __typename
+          id
+          gallery {
+            url
+            title
+            responsiveImage(imgixParams: { w: 400 }) { ...imageFields }
+          }
+        }
+        ... on VideoRecord {
+          __typename
+          id
+          video {
+            provider
+            providerUid
+            url
+            thumbnailUrl
+            title
+            width
+            height
+          }
+        }
+      }
       relatedNodes { id title slug year month parent { id title slug } }
       tags { id name slug color { hex } }
       customFields
-      latitude
-      longitude
-      number
       parent { id title slug color { hex } }
     }
   }

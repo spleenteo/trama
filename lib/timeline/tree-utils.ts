@@ -6,12 +6,14 @@ import type { NodeBase, NodeTree, ColorField } from '@/lib/types';
  *
  * Returns { computedStart, computedEnd } for the subtree.
  */
+const THIS_YEAR = new Date().getFullYear();
+
 export function computeRange(
   node: NodeBase,
   childrenMap: Map<string, NodeBase[]>
 ): { computedStart: number; computedEnd: number } {
   const ownStart = node.year;
-  const ownEnd = node.endYear ?? node.year;
+  const ownEnd = node.toPresent ? THIS_YEAR : (node.endYear ?? node.year);
 
   const kids = childrenMap.get(node.id) ?? [];
   if (kids.length === 0) {
@@ -69,7 +71,7 @@ export function computeTreeRanges(
 
   function walk(node: NodeTree): { computedStart: number; computedEnd: number } {
     const ownStart = node.year;
-    const ownEnd = node.endYear ?? node.year;
+    const ownEnd = node.toPresent ? THIS_YEAR : (node.endYear ?? node.year);
 
     if (!node.children || node.children.length === 0) {
       const range = { computedStart: ownStart, computedEnd: ownEnd };

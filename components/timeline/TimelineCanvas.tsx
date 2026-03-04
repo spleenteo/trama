@@ -173,9 +173,11 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     const leafEv = events.find((e) => e.id === selectedEventId);
     if (leafEv) {
       const start = eventToFractionalYear(leafEv);
-      const end = leafEv.endYear != null
-        ? eventToFractionalYear({ year: leafEv.endYear, month: leafEv.endMonth, day: leafEv.endDay })
-        : start;
+      const end = leafEv.toPresent
+        ? new Date().getFullYear()
+        : leafEv.endYear != null
+          ? eventToFractionalYear({ year: leafEv.endYear, month: leafEv.endMonth, day: leafEv.endDay })
+          : start;
       centerYear = (start + end) / 2;
     }
 
@@ -367,8 +369,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const { singles, clusters } = clusterEvents(visible, viewportStart, pixelsPerYear);
 
   // Split own events: range events keep the bar style, point events get staggered cards
-  const pointSingles = singles.filter((e) => e.endYear == null);
-  const rangeSingles = singles.filter((e) => e.endYear != null);
+  const pointSingles = singles.filter((e) => !e.toPresent && e.endYear == null);
+  const rangeSingles = singles.filter((e) => e.toPresent || e.endYear != null);
 
   // Exclude promoted events that already appear as leaf events (direct children of current context)
   const leafIds = new Set(events.map((e) => e.id));
