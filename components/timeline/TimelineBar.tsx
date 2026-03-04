@@ -1,6 +1,7 @@
 'use client';
 
 import { yearToPixel } from '@/lib/timeline/scale';
+import { useDrag } from '@/lib/timeline/drag-context';
 
 interface Props {
   title: string;
@@ -57,6 +58,9 @@ export default function TimelineBar({
 
   const fill = color ?? '#94a3b8';
 
+  const { state: dragState } = useDrag();
+  const isDropTarget = nodeId != null && dragState.draggingEventId != null && dragState.dropTargetId === nodeId;
+
   // Pin title to visible left edge
   const titleX = Math.max(xBar + 12, 12);
   const dateText = `${formatYear(minYear)} – ${formatYear(maxYear)}`;
@@ -71,7 +75,7 @@ export default function TimelineBar({
   const infoY = y + (SELF_BAR_HEIGHT - INFO_SIZE) / 2;
 
   return (
-    <g>
+    <g data-drop-id={nodeId}>
       {/* Info icon */}
       {nodeId && onSelectInfo && (
         <g
@@ -120,8 +124,10 @@ export default function TimelineBar({
         width={barWidth}
         height={SELF_BAR_HEIGHT}
         rx={5}
-        fill={fill}
-        opacity={0.18}
+        fill={isDropTarget ? '#3b82f6' : fill}
+        opacity={isDropTarget ? 0.3 : 0.18}
+        data-drop-id={nodeId}
+        style={{ pointerEvents: 'auto' }}
       />
       {/* Bar border */}
       <rect
@@ -131,9 +137,9 @@ export default function TimelineBar({
         height={SELF_BAR_HEIGHT}
         rx={5}
         fill="none"
-        stroke={fill}
-        strokeWidth={1.5}
-        opacity={0.55}
+        stroke={isDropTarget ? '#3b82f6' : fill}
+        strokeWidth={isDropTarget ? 2.5 : 1.5}
+        opacity={isDropTarget ? 1 : 0.55}
       />
 
       {/* Title — left-aligned, pinned to visible area */}

@@ -7,6 +7,7 @@ import { formatYearRange } from '@/lib/timeline/date-utils';
 import { computeTreeRanges } from '@/lib/timeline/tree-utils';
 import { useTimelineStore } from '@/lib/store';
 import { clampLabelX, visibleBarWidth } from '@/components/timeline/SubTimelineBars';
+import { useDrag } from '@/lib/timeline/drag-context';
 
 interface Props {
   siblings: NodeTree[];
@@ -29,6 +30,7 @@ const GHOST_OPACITY = 0.15;
 export default function GhostBars({ siblings, viewportStart, pixelsPerYear, width, onSelectInfo, topY }: Props) {
   const router = useRouter();
   const hiddenSiblingIds = useTimelineStore((s) => s.hiddenSiblingIds);
+  const { state: dragState } = useDrag();
 
   const visible = siblings.filter((s) => !hiddenSiblingIds.has(s.id));
   if (visible.length === 0) return null;
@@ -113,24 +115,30 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
             )}
 
             {/* Bar — hover fades in, click navigates */}
+            {(() => {
+              const isDropTarget = dragState.draggingEventId != null && dragState.dropTargetId === sib.id;
+              return (
             <g
               className="cursor-pointer"
               onClick={() => router.push(`/timeline/${sib.slug}`)}
               role="button"
               aria-label={`Naviga in: ${sib.title}`}
               style={{ pointerEvents: 'auto' }}
+              data-drop-id={sib.id}
             >
               <title>{`${sib.title} — clicca per navigare`}</title>
-              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" />
+              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={sib.id} />
               <rect
                 x={x1} y={barY}
                 width={barWidth} height={BAR_HEIGHT}
                 rx={BAR_HEIGHT / 2}
-                fill={color}
-                opacity={GHOST_OPACITY}
+                fill={isDropTarget ? '#3b82f6' : color}
+                opacity={isDropTarget ? 0.7 : GHOST_OPACITY}
+                stroke={isDropTarget ? '#3b82f6' : 'none'}
+                strokeWidth={isDropTarget ? 2 : 0}
                 style={{ transition: 'opacity 0.2s ease' }}
-                onMouseEnter={(e) => { (e.target as SVGRectElement).setAttribute('opacity', '0.55'); }}
-                onMouseLeave={(e) => { (e.target as SVGRectElement).setAttribute('opacity', String(GHOST_OPACITY)); }}
+                onMouseEnter={(e) => { if (!isDropTarget) (e.target as SVGRectElement).setAttribute('opacity', '0.55'); }}
+                onMouseLeave={(e) => { if (!isDropTarget) (e.target as SVGRectElement).setAttribute('opacity', String(GHOST_OPACITY)); }}
               />
               {/* Label above bar: name left, range right */}
               {showLabel && (() => {
@@ -169,6 +177,8 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
                 );
               })()}
             </g>
+              );
+            })()}
           </g>
         );
       })}

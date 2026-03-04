@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { notFound } from 'next/navigation';
 import { performRequest } from '@/lib/datocms/client';
 import {
@@ -13,6 +15,8 @@ import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
 import SiblingResetEffect from '@/components/timeline/SiblingResetEffect';
+import TimelinePageShell from '@/components/timeline/TimelinePageShell';
+import DropBreadcrumb from '@/components/timeline/DropBreadcrumb';
 
 interface ChildWithGrandchildren {
   id: string;
@@ -21,7 +25,7 @@ interface ChildWithGrandchildren {
 
 interface NodeResult {
   node: (NodeTreeType & {
-    parent?: { id: string; slug: string } | null;
+    parent?: { id: string; title: string; slug: string } | null;
     children: ChildWithGrandchildren[];
   }) | null;
 }
@@ -99,47 +103,38 @@ export default async function TimelinePage({ params, searchParams }: Props) {
   const siblingIds = new Set(siblings.map((s) => s.id));
 
   return (
-    <div className="flex flex-col h-screen bg-stone-50 overflow-hidden">
-      {/* Top nav */}
-      <header className="shrink-0 border-b border-stone-200 bg-white px-4 py-2 flex items-center gap-3 z-10">
-        <a href="/" className="text-stone-400 hover:text-stone-700 text-sm transition-colors">
-          ← Trama
-        </a>
-        <span className="text-stone-200">/</span>
-        {node.parent && (
-          <>
-            <a
-              href={`/timeline/${node.parent.slug}`}
-              className="text-sm text-stone-400 hover:text-stone-700 transition-colors truncate max-w-[120px]"
-            >
-              {rootTree?.title}
-            </a>
-            <span className="text-stone-200">/</span>
-          </>
-        )}
-        <span className="text-sm font-medium text-stone-700 truncate">{node.title}</span>
-      </header>
+    <TimelinePageShell>
+      <div className="flex flex-col h-screen bg-stone-50 overflow-hidden">
+        {/* Top nav — drop target for moving events to parent */}
+        <DropBreadcrumb
+          parentId={node.parent?.id ?? null}
+          parentSlug={node.parent?.slug}
+          parentTitle={node.parent?.title}
+          currentTitle={node.title}
+          rootTitle={rootTree?.title}
+        />
 
-      {/* Main area */}
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
-        {rootTree && (
-          <NodeTreeSidebar root={rootTree} activeSlug={slug} siblingIds={siblingIds} />
-        )}
+        {/* Main area */}
+        <div className="flex flex-1 min-h-0">
+          {/* Sidebar */}
+          {rootTree && (
+            <NodeTreeSidebar root={rootTree} activeSlug={slug} siblingIds={siblingIds} />
+          )}
 
-        {/* Canvas + detail panel */}
-        <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
-          <TimelineCanvas
-            context={enrichedContext}
-            events={leafEvents}
-            childEvents={childEvents}
-            initialEventSlug={eventSlug}
-            siblings={siblings}
-          />
-          <EventDetailPanel />
-          <SiblingResetEffect slug={slug} />
-        </main>
+          {/* Canvas + detail panel */}
+          <main className="relative flex-1 min-w-0 flex flex-col overflow-hidden">
+            <TimelineCanvas
+              context={enrichedContext}
+              events={leafEvents}
+              childEvents={childEvents}
+              initialEventSlug={eventSlug}
+              siblings={siblings}
+            />
+            <EventDetailPanel />
+            <SiblingResetEffect slug={slug} />
+          </main>
+        </div>
       </div>
-    </div>
+    </TimelinePageShell>
   );
 }

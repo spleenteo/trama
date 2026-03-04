@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { animate } from 'framer-motion';
 import type { ChildEvent, NodeTree, NodeSummary } from '@/lib/types';
 import { computeFitToView, pixelToYear } from '@/lib/timeline/scale';
@@ -10,6 +11,7 @@ import { useTimelineStore } from '@/lib/store';
 import ContextDetailHeader from '@/components/detail/ContextDetailHeader';
 import TimelineAxis from '@/components/timeline/TimelineAxis';
 import ZoomControls from '@/components/timeline/ZoomControls';
+import CreateEventModal from '@/components/timeline/CreateEventModal';
 import EventCluster, { clusterEvents, type Cluster } from '@/components/timeline/EventCluster';
 import SubTimelineBars from '@/components/timeline/SubTimelineBars';
 import GhostBars from '@/components/timeline/GhostBars';
@@ -19,6 +21,7 @@ import SuperEventStem from '@/components/timeline/SuperEventStem';
 import { getAccentColor } from '@/lib/utils/color';
 import { TIMELINE_EASE } from '@/lib/timeline/constants';
 import { assignLevels } from '@/lib/timeline/collision';
+import { useDrag } from '@/lib/timeline/drag-context';
 
 interface Props {
   context: NodeTree;
@@ -43,6 +46,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const [viewportStart, setViewportStart] = useState<number>(0);
   const [pixelsPerYear, setPixelsPerYear] = useState<number>(1);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const router = useRouter();
 
   const vpRef = useRef(viewportStart);
   const ppyRef = useRef(pixelsPerYear);
@@ -144,7 +149,54 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     return () => el.removeEventListener('wheel', handleWheel);
   }, []);
 
-  // ─── Pointer drag ─────────────────────────────────────────────────────────
+  // ─── Event drag & drop (move event to another context) ───────────────────
+  const { state: dragState, setDropTarget, endDrag, isDragging: isEventDragging } = useDrag();
+  const isEventDraggingRef = useRef(false);
+  isEventDraggingRef.current = isEventDragging;
+
+  // Detect drop target under pointer during event drag
+  useEffect(() => {
+    if (!isEventDragging) return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onMove = (e: PointerEvent) => {
+      const target = document.elementFromPoint(e.clientX, e.clientY);
+      const dropId = (target as Element)?.closest('[data-drop-id]')?.getAttribute('data-drop-id')
+        ?? (target as Element)?.getAttribute('data-drop-id');
+      setDropTarget(dropId);
+    };
+
+    const onUp = async () => {
+      const result = endDrag();
+      if (result) {
+        try {
+          const res = await fetch(`/api/nodes/${result.eventId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ parent_id: result.targetId }),
+          });
+          if (res.ok) {
+            await new Promise((r) => setTimeout(r, 1500));
+            router.refresh();
+          }
+        } catch (err) {
+          console.error('Move failed:', err);
+        }
+      }
+    };
+
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
+    el.addEventListener('pointercancel', () => endDrag());
+    return () => {
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointercancel', () => endDrag());
+    };
+  }, [isEventDragging, setDropTarget, endDrag, router]);
+
+  // ─── Pointer drag (pan canvas) ─────────────────────────────────────────
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -152,6 +204,8 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
     let lastX = 0;
     const onDown = (e: PointerEvent) => {
       if (e.button !== 0) return;
+      // Don't start pan when event drag is active
+      if (isEventDraggingRef.current) return;
       // Don't start drag when clicking on interactive controls (buttons, SVG role="button")
       if ((e.target as Element).closest('button, [role="button"]')) return;
       dragging = true;
@@ -160,14 +214,14 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
       el.style.cursor = 'grabbing';
     };
     const onMove = (e: PointerEvent) => {
-      if (!dragging) return;
+      if (!dragging || isEventDraggingRef.current) return;
       const dx = e.clientX - lastX;
       lastX = e.clientX;
       setViewportStart((vs) => vs - dx / ppyRef.current);
     };
     const onUp = () => {
       dragging = false;
-      el.style.cursor = 'grab';
+      if (!isEventDraggingRef.current) el.style.cursor = 'grab';
     };
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove);
@@ -222,8 +276,10 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
   const pointSingles = singles.filter((e) => e.endYear == null);
   const rangeSingles = singles.filter((e) => e.endYear != null);
 
-  const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super');
-  const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main');
+  // Exclude promoted events that already appear as leaf events (direct children of current context)
+  const leafIds = new Set(events.map((e) => e.id));
+  const superChildEvents = (childEvents ?? []).filter((e) => e.visibility === 'super' && !leafIds.has(e.id));
+  const mainChildEvents  = (childEvents ?? []).filter((e) => e.visibility === 'main' && !leafIds.has(e.id));
 
   // Unified level pool: all events that get cards below the axis
   // rangeSingles also get cards (in addition to their bar on the axis)
@@ -363,7 +419,14 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
           </svg>
         )}
 
-        <div className="absolute right-4 bottom-6 z-10 pointer-events-auto">
+        <div className="absolute right-4 bottom-6 z-10 pointer-events-auto flex flex-col gap-2 items-end">
+          <button
+            onClick={() => setCreateModalOpen(true)}
+            className="w-10 h-10 rounded-full bg-stone-800 text-white shadow-md hover:bg-stone-700 transition-colors flex items-center justify-center text-xl leading-none"
+            aria-label="Nuovo evento"
+          >
+            +
+          </button>
           <ZoomControls
             onZoomIn={() => zoomBy(ZOOM_FACTOR)}
             onZoomOut={() => zoomBy(1 / ZOOM_FACTOR)}
@@ -377,6 +440,13 @@ export default function TimelineCanvas({ context, events, childEvents, initialEv
           </div>
         )}
       </div>
+
+      <CreateEventModal
+        parentId={context.id}
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        onCreated={() => router.refresh()}
+      />
     </div>
   );
 }
