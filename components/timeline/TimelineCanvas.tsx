@@ -41,7 +41,7 @@ interface Props {
 const ZOOM_FACTOR = 1.4;
 
 const WHEEL_BASE = 1.002; // smooth proportional zoom — ~22% per 100-unit scroll
-const MAX_PPY = 400;
+const MAX_PPY = 5000;
 
 // Hard universe bounds — Big Bang to Big Rip
 const MIN_YEAR = -13_800_000_000;
