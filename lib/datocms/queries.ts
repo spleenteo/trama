@@ -9,6 +9,8 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
       slug
       color { hex }
       year
+      month
+      day
       endYear
       toPresent
       visibility
@@ -24,6 +26,8 @@ export const ALL_ROOT_NODES_QUERY = /* GraphQL */ `
         slug
         color { hex }
         year
+        month
+        day
         endYear
         toPresent
         visibility
@@ -45,6 +49,8 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
       description { value }
       featuredImage { responsiveImage { ...imageFields } }
       year
+      month
+      day
       endYear
       toPresent
       visibility
@@ -55,6 +61,8 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
         slug
         color { hex }
         year
+        month
+        day
         endYear
         toPresent
         visibility
@@ -65,6 +73,8 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
           slug
           color { hex }
           year
+          month
+          day
           endYear
           toPresent
           visibility
@@ -75,6 +85,8 @@ export const NODE_TREE_QUERY = /* GraphQL */ `
             slug
             color { hex }
             year
+            month
+            day
             endYear
             toPresent
             visibility
@@ -98,6 +110,8 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
       description { value }
       featuredImage { responsiveImage { ...imageFields } }
       year
+      month
+      day
       endYear
       toPresent
       visibility
@@ -113,6 +127,8 @@ export const NODE_BY_SLUG_QUERY = /* GraphQL */ `
         slug
         color { hex }
         year
+        month
+        day
         endYear
         toPresent
         visibility

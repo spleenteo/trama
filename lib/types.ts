@@ -68,6 +68,8 @@ export interface NodeBase {
   slug: string;
   color: ColorField | null;
   year: number;
+  month: number | null;
+  day: number | null;
   endYear: number | null;
   toPresent: boolean;
   visibility: Visibility;
@@ -83,8 +85,6 @@ export interface NodeTree extends NodeBase {
 
 /** Node summary — used in event markers and canvas rendering */
 export interface NodeSummary extends NodeBase {
-  month: number | null;
-  day: number | null;
   time: string | null;
   endMonth: number | null;
   endDay: number | null;

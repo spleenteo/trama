@@ -1,19 +1,31 @@
 import type { NodeBase, NodeTree, ColorField } from '@/lib/types';
+import { eventToFractionalYear } from '@/lib/timeline/date-utils';
 
 /**
- * Compute the effective end year for a node, considering its own end_year
+ * Compute the effective range for a node, considering its own year/month/day
  * and the years of all descendants (bottom-up traversal).
+ * Uses fractional years for sub-year precision.
  *
  * Returns { computedStart, computedEnd } for the subtree.
  */
 const THIS_YEAR = new Date().getFullYear();
 
+function nodeStart(node: { year: number; month: number | null; day: number | null }): number {
+  return eventToFractionalYear(node);
+}
+
+function nodeEnd(node: { year: number; month: number | null; day: number | null; endYear: number | null; toPresent: boolean }): number {
+  if (node.toPresent) return THIS_YEAR;
+  if (node.endYear != null) return node.endYear;
+  return eventToFractionalYear(node);
+}
+
 export function computeRange(
   node: NodeBase,
   childrenMap: Map<string, NodeBase[]>
 ): { computedStart: number; computedEnd: number } {
-  const ownStart = node.year;
-  const ownEnd = node.toPresent ? THIS_YEAR : (node.endYear ?? node.year);
+  const ownStart = nodeStart(node);
+  const ownEnd = nodeEnd(node);
 
   const kids = childrenMap.get(node.id) ?? [];
   if (kids.length === 0) {
@@ -70,8 +82,8 @@ export function computeTreeRanges(
   const ranges = new Map<string, { computedStart: number; computedEnd: number }>();
 
   function walk(node: NodeTree): { computedStart: number; computedEnd: number } {
-    const ownStart = node.year;
-    const ownEnd = node.toPresent ? THIS_YEAR : (node.endYear ?? node.year);
+    const ownStart = nodeStart(node);
+    const ownEnd = nodeEnd(node);
 
     if (!node.children || node.children.length === 0) {
       const range = { computedStart: ownStart, computedEnd: ownEnd };
