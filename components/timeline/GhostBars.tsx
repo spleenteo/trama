@@ -63,7 +63,7 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
         // Sticky label
         const labelX = clampLabelX(rawX1, rawX2, width);
         const visWidth = visibleBarWidth(rawX1, rawX2, width);
-        const showLabel = visWidth > MIN_LABEL_WIDTH;
+        const isNarrow = visWidth <= MIN_LABEL_WIDTH;
         const rangeLabel = formatYearRange(Math.round(start), Math.round(end));
 
         // Info icon
@@ -127,7 +127,13 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
               data-drop-id={sib.id}
             >
               <title>{`${sib.title} — clicca per navigare`}</title>
-              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={sib.id} />
+              {/* Hit area (wider for narrow bars) */}
+              {(() => {
+                const displayTitle = sib.title.length > 32 ? sib.title.slice(0, 30) + '…' : sib.title;
+                const titleWidth = displayTitle.length * 7.5;
+                const hitWidth = isNarrow ? barWidth + titleWidth + 24 : barWidth;
+                return <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={hitWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={sib.id} />;
+              })()}
               <rect
                 x={x1} y={barY}
                 width={barWidth} height={BAR_HEIGHT}
@@ -140,16 +146,17 @@ export default function GhostBars({ siblings, viewportStart, pixelsPerYear, widt
                 onMouseEnter={(e) => { if (!isDropTarget) (e.target as SVGRectElement).setAttribute('opacity', '0.55'); }}
                 onMouseLeave={(e) => { if (!isDropTarget) (e.target as SVGRectElement).setAttribute('opacity', String(GHOST_OPACITY)); }}
               />
-              {/* Label above bar: name left, range right */}
-              {showLabel && (() => {
+              {/* Label above bar: always visible */}
+              {(() => {
                 const displayTitle = sib.title.length > 32 ? sib.title.slice(0, 30) + '…' : sib.title;
                 const titleWidth = displayTitle.length * 7.5;
                 const rangeWidth = rangeLabel ? rangeLabel.length * 7 : 0;
-                const showRange = rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                const showRange = !isNarrow && rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                const titleX = isNarrow ? x1 + barWidth + 6 : labelX;
                 return (
                   <g style={{ pointerEvents: 'none' }}>
                     <text
-                      x={labelX}
+                      x={titleX}
                       y={barY - 5}
                       fontSize={12}
                       fill={color}

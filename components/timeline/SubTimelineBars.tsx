@@ -80,7 +80,7 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
         // Sticky label position
         const labelX = clampLabelX(rawX1, rawX2, width);
         const visWidth = visibleBarWidth(rawX1, rawX2, width);
-        const showLabel = visWidth > MIN_LABEL_WIDTH;
+        const isNarrow = visWidth <= MIN_LABEL_WIDTH;
         const rangeLabel = formatYearRange(Math.round(start), Math.round(end), child.toPresent);
 
         // Info icon
@@ -140,8 +140,13 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
               data-drop-id={child.id}
             >
               {isNavigable && <title>{`${child.title} — clicca per navigare`}</title>}
-              {/* Hit area covers bar + label */}
-              <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={barWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={child.id} />
+              {/* Hit area covers bar + label (wider for narrow bars) */}
+              {(() => {
+                const displayTitle = child.title.length > 32 ? child.title.slice(0, 30) + '…' : child.title;
+                const titleWidth = displayTitle.length * 7.5;
+                const hitWidth = isNarrow ? barWidth + titleWidth + LABEL_PADDING * 2 : barWidth;
+                return <rect x={x1} y={barY - LABEL_HEIGHT - 2} width={hitWidth} height={BAR_HEIGHT + LABEL_HEIGHT + 4} fill="transparent" data-drop-id={child.id} />;
+              })()}
               {/* Bar */}
               <rect
                 x={x1} y={barY}
@@ -152,16 +157,18 @@ export default function SubTimelineBars({ children, viewportStart, pixelsPerYear
                 stroke={isDropTarget ? '#3b82f6' : 'none'}
                 strokeWidth={isDropTarget ? 2 : 0}
               />
-              {/* Label above bar: name left, range right */}
-              {showLabel && (() => {
+              {/* Label above bar: always visible */}
+              {(() => {
                 const displayTitle = child.title.length > 32 ? child.title.slice(0, 30) + '…' : child.title;
                 const titleWidth = displayTitle.length * 7.5;
                 const rangeWidth = rangeLabel ? rangeLabel.length * 7 : 0;
-                const showRange = rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                const showRange = !isNarrow && rangeLabel && visWidth > titleWidth + rangeWidth + 40;
+                // For narrow bars, place title right after the bar end
+                const titleX = isNarrow ? x1 + barWidth + 6 : labelX;
                 return (
                   <g style={{ pointerEvents: 'none' }}>
                     <text
-                      x={labelX}
+                      x={titleX}
                       y={barY - 5}
                       fontSize={12}
                       fill={color}
