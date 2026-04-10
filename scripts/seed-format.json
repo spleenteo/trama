@@ -1,0 +1,83 @@
+{
+  "_docs": {
+    "descrizione": "Formato JSON per lo script seed.ts di Trama. Ogni file descrive un albero di nodi da creare su DatoCMS.",
+    "uso": "DATOCMS_API_TOKEN=xxx npx tsx scripts/seed.ts path/to/questo-file.json",
+    "campi_nodo": {
+      "title":       "OBBLIGATORIO. Titolo del nodo. Usare double-quote per apostrofi italiani.",
+      "slug":        "OBBLIGATORIO. Slug unico, lowercase, kebab-case, ASCII puro (no accenti).",
+      "year":        "OBBLIGATORIO. Anno di inizio (intero).",
+      "end_year":    "Opzionale. Anno di fine. Omettere se non applicabile o se è lo stesso di year.",
+      "month":       "Opzionale. Mese (1-12). Serve per posizionare l'evento dentro l'anno.",
+      "day":         "Opzionale. Giorno (1-31). Serve solo se il mese è noto.",
+      "color":       "Opzionale. Colore hex (#RRGGBB). Utile per sotto-temi. I nodi foglia ereditano dal padre.",
+      "visibility":  "Opzionale. 'super' (2-3 più importanti per ramo) | 'main' (default) | 'regular' (dettagli).",
+      "event_type":  "Opzionale. 'event' (default, generici e strutturali) | 'key_moment' (date storiche fondamentali) | 'incident' (crisi, rotture).",
+      "description": "Opzionale. Array di stringhe, ogni stringa diventa un paragrafo. In italiano.",
+      "image_url":   "Opzionale. URL immagine da Wikimedia Commons o altra fonte pubblica.",
+      "image_title": "Opzionale. Titolo/alt dell'immagine. Se omesso, usa il title del nodo.",
+      "children":    "Opzionale. Array di nodi figli, stessa struttura. Ricorsivo, profondità illimitata."
+    },
+    "parent_id": "ID DatoCMS del nodo genitore esistente. Null o omesso = nodi alla root (homepage).",
+    "colori_consigliati": {
+      "#1565C0": "Blu profondo — acqua, politica",
+      "#D97706": "Ambra — classica, Medioevo",
+      "#DC2626": "Rosso — rivoluzioni, guerre",
+      "#7C3AED": "Viola — arte, spiritualità",
+      "#EA580C": "Arancione — industria, scoperte",
+      "#0891B2": "Ciano — scienza, mare",
+      "#16A34A": "Verde — natura, biologia",
+      "#DB2777": "Rosa — design, moda",
+      "#475569": "Ardesia — storia antica",
+      "#B45309": "Oro — arte sacra, imperiali"
+    }
+  },
+
+  "parent_id": null,
+
+  "nodes": [
+    {
+      "title": "Esempio: La Rivoluzione Francese",
+      "slug": "rivoluzione-francese",
+      "year": 1789,
+      "end_year": 1799,
+      "color": "#DC2626",
+      "visibility": "super",
+      "event_type": "event",
+      "description": [
+        "La Rivoluzione francese segnò la fine dell'antico regime e l'inizio dell'età contemporanea.",
+        "Dieci anni di sconvolgimenti politici, sociali e culturali che trasformarono la Francia e l'Europa."
+      ],
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Eug%C3%A8ne_Delacroix_-_La_libert%C3%A9_guidant_le_peuple.jpg",
+      "image_title": "La Libertà che guida il popolo — Delacroix",
+      "children": [
+        {
+          "title": "Presa della Bastiglia",
+          "slug": "presa-bastiglia",
+          "year": 1789,
+          "month": 7,
+          "day": 14,
+          "visibility": "super",
+          "event_type": "key_moment",
+          "description": [
+            "La folla parigina assalta la Bastiglia, prigione simbolo dell'assolutismo regio.",
+            "È l'evento che segna simbolicamente l'inizio della Rivoluzione."
+          ],
+          "image_url": "https://upload.wikimedia.org/wikipedia/commons/4/4e/Anonymous_-_Prise_de_la_Bastille.jpg",
+          "image_title": "Presa della Bastiglia"
+        },
+        {
+          "title": "Esecuzione di Luigi XVI",
+          "slug": "esecuzione-luigi-xvi",
+          "year": 1793,
+          "month": 1,
+          "day": 21,
+          "visibility": "super",
+          "event_type": "incident",
+          "description": [
+            "Il re di Francia viene ghigliottinato in Place de la Révolution davanti a una folla immensa."
+          ]
+        }
+      ]
+    }
+  ]
+}
