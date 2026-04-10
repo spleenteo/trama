@@ -11,6 +11,7 @@ import {
 import type { NodeTree as NodeTreeType, NodeSummary } from '@/lib/types';
 import { buildChildEvents } from '@/lib/timeline/child-events';
 import { getSiblings, findNodeInTree, computeTreeRanges, collectPromotedNodeIds, buildParentMap } from '@/lib/timeline/tree-utils';
+import { eventToFractionalYear } from '@/lib/timeline/date-utils';
 import TimelineCanvas from '@/components/timeline/TimelineCanvas';
 import NodeTreeSidebar from '@/components/sidebar/NodeTree';
 import EventDetailPanel from '@/components/detail/EventDetailPanel';
@@ -86,14 +87,14 @@ export default async function TimelinePage({ params, searchParams }: Props) {
   // Enrich context node: use rootTree's version of current node's children (has full tree depth)
   // and attach computedMin/computedMax from rangeMap
   const treeNode = rootTree ? findNodeInTree(rootTree, node.id) : null;
-  // Build a map of contextId -> event dots (year + visibility) for each sub-context
+  // Build a map of contextId -> event dots (fractional year + visibility) for each sub-context
   const eventDotsMap = new Map<string, { year: number; visibility: string }[]>();
   for (const child of (treeNode?.children ?? [])) {
     if (!subContextIds.has(child.id)) continue;
     const dots = (child.children ?? [])
       .filter((gc: { year: number }) => gc.year != null)
-      .map((gc: { year: number; visibility: string }) => ({
-        year: gc.year,
+      .map((gc: { year: number; month: number | null; day: number | null; visibility: string }) => ({
+        year: eventToFractionalYear(gc),
         visibility: gc.visibility ?? 'regular',
       }));
     if (dots.length > 0) eventDotsMap.set(child.id, dots);
