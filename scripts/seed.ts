@@ -1,8 +1,8 @@
 /**
  * seed.ts — Script generico per creare nodi su DatoCMS da un file JSON.
  *
- * Uso:
- *   DATOCMS_API_TOKEN=xxx npx tsx scripts/seed.ts path/to/data.json
+ * Uso (il token viene letto da .env.local):
+ *   npm run seed -- path/to/data.json
  *
  * Il file JSON deve rispettare il formato documentato in scripts/seed-format.json
  */

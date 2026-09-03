@@ -13,10 +13,11 @@ Quando questa skill viene invocata, segui le **5 fasi** descritte di seguito in 
 
 ```
 Node model ID    : JbziKHLoTUCdJCdTZwWWlg
-API token env    : DATOCMS_API_TOKEN (leggere da .env.local, non hardcodare)
+API token env    : DATOCMS_API_TOKEN, letto da .env.local dallo script npm. MAI scriverlo in chat, file o comandi.
 Script generico  : scripts/seed.ts
 Formato JSON     : scripts/seed-format.json (riferimento per la struttura)
-Runner           : npx tsx
+Runner           : npm run seed -- <file.json>   (usa tsx --env-file=.env.local)
+Directory        : la root del repo (dove sta package.json); nessun path assoluto
 ```
 
 **Enum DatoCMS:**
@@ -268,7 +269,7 @@ Genera il file `scripts/data/seed-[tema-slug].json` seguendo il formato document
 Esegui lo script generico passando il file JSON (timeout 300 secondi):
 
 ```bash
-cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=***REMOVED*** npx tsx scripts/seed.ts scripts/data/seed-[tema-slug].json 2>&1
+npm run seed -- scripts/data/seed-[tema-slug].json 2>&1
 ```
 
 Riporta all'utente:
@@ -288,7 +289,7 @@ Riporta all'utente:
 | Sovrascrivere la fonte locale con info da web | Il web arricchisce, non sovrascrive |
 | Limitare rigidamente il numero di nodi per livello | Il livello influenza la ricchezza per nodo, non il numero totale |
 | `WebFetch` su Wikipedia (403) | `curl` + Wikipedia API |
-| Hardcodare il token nello script | `process.env.DATOCMS_API_TOKEN` |
+| Scrivere il token in script, comandi, chat o documenti | `npm run seed` legge `DATOCMS_API_TOKEN` da `.env.local` |
 | Single-quote per stringhe italiane | Double-quote |
 | Coprire "tutto il tema" senza focus | Forzare la selezione di sotto-temi |
 | Generare il JSON senza mostrare il piano | Mostrare piano → aspettare conferma |
