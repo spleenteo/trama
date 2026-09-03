@@ -29,17 +29,17 @@
 **Interfaces:**
 - Produces: `npx datocms` risolve alla versione locale del progetto.
 
-- [ ] **Step 1: Installare la CLI**
+- [x] **Step 1: Installare la CLI**
 
 Run: `npm install --save-dev datocms`
 Expected: `package.json` contiene `"datocms": "^4.x.x"` in `devDependencies`, nessun errore.
 
-- [ ] **Step 2: Verificare che la CLI usi il progetto linkato**
+- [x] **Step 2: Verificare che la CLI usi il progetto linkato**
 
 Run: `npx datocms whoami && npx datocms cma:call site find --json | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['id'], d['name'])"`
 Expected: email dell'utente, poi `196935 Trama`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add package.json package-lock.json
@@ -58,7 +58,7 @@ git commit -m "chore: add datocms CLI as devDependency"
 **Interfaces:**
 - Produces: `npm run seed -- <file.json>` esegue `tsx --env-file=.env.local scripts/seed.ts <file.json>`.
 
-- [ ] **Step 1: Aggiungere lo script npm**
+- [x] **Step 1: Aggiungere lo script npm**
 
 In `package.json`, dentro `"scripts"`, aggiungere dopo `"lint"`:
 
@@ -66,7 +66,7 @@ In `package.json`, dentro `"scripts"`, aggiungere dopo `"lint"`:
 "seed": "tsx --env-file=.env.local scripts/seed.ts"
 ```
 
-- [ ] **Step 2: Aggiornare il commento d'uso in `scripts/seed.ts`**
+- [x] **Step 2: Aggiornare il commento d'uso in `scripts/seed.ts`**
 
 Sostituire le righe 4-5:
 
@@ -82,7 +82,7 @@ con:
  *   npm run seed -- path/to/data.json
 ```
 
-- [ ] **Step 3: Aggiornare il blocco costanti della skill**
+- [x] **Step 3: Aggiornare il blocco costanti della skill**
 
 In `.claude/skills/trama-seed/skill.md` sostituire il blocco:
 
@@ -105,7 +105,7 @@ Runner           : npm run seed -- <file.json>   (usa tsx --env-file=.env.local)
 Directory        : la root del repo (dove sta package.json); nessun path assoluto
 ```
 
-- [ ] **Step 4: Sostituire il comando di esecuzione (riga 271)**
+- [x] **Step 4: Sostituire il comando di esecuzione (riga 271)**
 
 Sostituire l'intera riga che inizia con `cd "/Users/spleenteo/Sites/Personal Apps/trama" && DATOCMS_API_TOKEN=` con:
 
@@ -113,7 +113,7 @@ Sostituire l'intera riga che inizia con `cd "/Users/spleenteo/Sites/Personal App
 npm run seed -- scripts/data/seed-[tema-slug].json 2>&1
 ```
 
-- [ ] **Step 5: Aggiornare la riga anti-pattern sul token**
+- [x] **Step 5: Aggiornare la riga anti-pattern sul token**
 
 Sostituire la riga della tabella:
 
@@ -127,7 +127,7 @@ con:
 | Scrivere il token in script, comandi, chat o documenti | `npm run seed` legge `DATOCMS_API_TOKEN` da `.env.local` |
 ```
 
-- [ ] **Step 6: Verificare che non restino token o path assoluti**
+- [x] **Step 6: Verificare che non restino token o path assoluti**
 
 Run: `git grep -nE '[a-f0-9]{30}|Personal Apps' -- .claude scripts package.json; echo "exit=$?"`
 Expected: nessuna riga, `exit=1`.
@@ -135,7 +135,7 @@ Expected: nessuna riga, `exit=1`.
 Run: `npm run seed 2>&1 | tail -3`
 Expected: lo script termina con il messaggio d'uso (manca il file JSON), non con un errore di token.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add .claude/skills/trama-seed/skill.md package.json scripts/seed.ts
@@ -150,7 +150,7 @@ git commit -m "chore(seed): read DatoCMS token from .env.local, drop hardcoded t
 - Modify: `.gitignore`
 - Untrack: `.claude/settings.local.json` (il file resta su disco)
 
-- [ ] **Step 1: Aggiungere la regola a `.gitignore`**
+- [x] **Step 1: Aggiungere la regola a `.gitignore`**
 
 Sotto la sezione `# AI tooling` aggiungere:
 
@@ -158,17 +158,17 @@ Sotto la sezione `# AI tooling` aggiungere:
 .claude/settings.local.json
 ```
 
-- [ ] **Step 2: Togliere il file dall'indice senza cancellarlo**
+- [x] **Step 2: Togliere il file dall'indice senza cancellarlo**
 
 Run: `git rm --cached .claude/settings.local.json`
 Expected: `rm '.claude/settings.local.json'`; `ls .claude/settings.local.json` mostra ancora il file.
 
-- [ ] **Step 3: Verificare**
+- [x] **Step 3: Verificare**
 
 Run: `git ls-files .claude`
 Expected: solo `skills-lock.json`, `skills/datocms/skill.md`, `skills/trama-seed/skill.md`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add .gitignore
@@ -182,12 +182,12 @@ git commit -m "chore: stop tracking .claude/settings.local.json"
 **Files:**
 - Delete: `memory/MEMORY.md`
 
-- [ ] **Step 1: Rimuovere la cartella dal repo**
+- [x] **Step 1: Rimuovere la cartella dal repo**
 
 Run: `git rm -r memory`
 Expected: `rm 'memory/MEMORY.md'`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git commit -m "chore: remove stale Timeo-era memory file"
@@ -200,7 +200,7 @@ git commit -m "chore: remove stale Timeo-era memory file"
 **Files:**
 - Modify: `.env.local.example`
 
-- [ ] **Step 1: Riscrivere il file**
+- [x] **Step 1: Riscrivere il file**
 
 Contenuto completo:
 
@@ -218,12 +218,12 @@ NEXT_PUBLIC_DATOCMS_API_TOKEN=your_read_only_cda_token_here
 TRAMA_EDITING=true
 ```
 
-- [ ] **Step 2: Verificare che le variabili corrispondano a quelle lette dal codice**
+- [x] **Step 2: Verificare che le variabili corrispondano a quelle lette dal codice**
 
 Run: `git grep -hoE 'process\.env\.[A-Z_]+' -- app lib scripts | sort -u`
 Expected: `process.env.DATOCMS_API_TOKEN` e `process.env.NEXT_PUBLIC_DATOCMS_API_TOKEN` (TRAMA_EDITING arriva col sotto-progetto 2).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .env.local.example
@@ -241,17 +241,17 @@ git commit -m "docs: align .env.local.example with real variables"
 **Interfaces:**
 - Consumes: i task 1-5 committati su `main` (la riscrittura deve includerli).
 
-- [ ] **Step 1: Installare git-filter-repo**
+- [x] **Step 1: Installare git-filter-repo**
 
 Run: `brew install git-filter-repo && git filter-repo --version`
 Expected: stampa una versione (es. `2.47.0`).
 
-- [ ] **Step 2: Backup mirror del repo**
+- [x] **Step 2: Backup mirror del repo**
 
 Run: `git clone --mirror /Users/spleenteo/Sites/me/trama "$SCRATCH/trama-backup.git" && ls "$SCRATCH/trama-backup.git"`
 Expected: cartella con `HEAD`, `objects`, `refs`.
 
-- [ ] **Step 3: Creare il branch locale per `chore/new-shaping`**
+- [x] **Step 3: Creare il branch locale per `chore/new-shaping`**
 
 filter-repo riscrive solo i ref locali. Run:
 
@@ -261,19 +261,19 @@ git fetch origin && git branch --track chore/new-shaping origin/chore/new-shapin
 
 Expected: compaiono `chore/new-shaping` e `main` tra i locali.
 
-- [ ] **Step 4: Scrivere il file di sostituzione nella scratchpad**
+- [x] **Step 4: Scrivere il file di sostituzione nella scratchpad**
 
 Il file contiene una riga per token, nel formato `<token completo>==>***REMOVED***`. I due token sono quelli trovati in audit (già revocati). Creare il file con un heredoc a partire dai valori noti alla sessione; non committarlo, non stamparlo.
 
 Run: `wc -l "$SCRATCH/replacements.txt"`
 Expected: `2`.
 
-- [ ] **Step 5: Eseguire la riscrittura**
+- [x] **Step 5: Eseguire la riscrittura**
 
 Run: `git filter-repo --replace-text "$SCRATCH/replacements.txt" --force`
 Expected: `Completely finished after N seconds`. filter-repo rimuove il remote `origin` come misura di sicurezza.
 
-- [ ] **Step 6: Verificare che i token non esistano più in nessun ref**
+- [x] **Step 6: Verificare che i token non esistano più in nessun ref**
 
 Run: `git log -p --all | grep -cE 'c5ff13[a-f0-9]{24}|73cf92[a-f0-9]{24}'; git log -p --all | grep -c 'REMOVED'`
 Expected: prima riga `0`, seconda riga maggiore di 0.
@@ -281,7 +281,7 @@ Expected: prima riga `0`, seconda riga maggiore di 0.
 Run: `git status --short && git log --oneline | wc -l`
 Expected: solo il JSON non tracciato; stesso numero di commit di prima (verificare contro `git -C "$SCRATCH/trama-backup.git" log --oneline main | wc -l`).
 
-- [ ] **Step 7: Ripristinare il remote e forzare il push**
+- [x] **Step 7: Ripristinare il remote e forzare il push**
 
 ```bash
 git remote add origin git@github.com:spleenteo/trama.git
@@ -292,7 +292,7 @@ git fetch origin && git status -sb | head -1
 
 Expected: `## main...origin/main` senza ahead/behind.
 
-- [ ] **Step 8: Verificare su GitHub**
+- [x] **Step 8: Verificare su GitHub**
 
 Run: `gh api repos/spleenteo/trama/commits/main --jq '.sha' ; git rev-parse main`
 Expected: i due hash coincidono.
@@ -302,7 +302,7 @@ Expected: `0`.
 
 Nota da riferire all'utente: i commit vecchi restano raggiungibili per hash su GitHub finché GitHub non li purga; si può chiedere al supporto GitHub di eliminarli, ma i token sono già revocati.
 
-- [ ] **Step 9: Pulizia locale**
+- [x] **Step 9: Pulizia locale**
 
 Run: `git branch -d chore/new-shaping; git reflog expire --expire=now --all && git gc --prune=now --quiet; git count-objects -v | head -3`
 Expected: il branch locale sparisce (resta il remoto), gc senza errori.
@@ -311,9 +311,9 @@ Expected: il branch locale sparisce (resta il remoto), gc senza errori.
 
 ## Verifica finale del sotto-progetto
 
-- [ ] `git grep -nE '[a-f0-9]{30}' -- ':!package-lock.json' ':!*.svg'` → nessun risultato.
-- [ ] `git log -p --all | grep -cE 'c5ff13|73cf92'` → `0`.
-- [ ] `git ls-files | grep -E 'settings.local|^memory/'` → nessun risultato.
-- [ ] `npx datocms whoami` → ok.
-- [ ] `npm run seed` senza argomenti → messaggio d'uso.
-- [ ] `git status -sb` → `## main...origin/main`, solo il JSON non tracciato.
+- [x] `git grep -nE '[a-f0-9]{30}' -- ':!package-lock.json' ':!*.svg'` → nessun risultato.
+- [x] `git log -p --all | grep -cE 'c5ff13|73cf92'` → `0`.
+- [x] `git ls-files | grep -E 'settings.local|^memory/'` → nessun risultato.
+- [x] `npx datocms whoami` → ok.
+- [x] `npm run seed` senza argomenti → messaggio d'uso.
+- [x] `git status -sb` → `## main...origin/main`, solo il JSON non tracciato.
