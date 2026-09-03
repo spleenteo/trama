@@ -140,7 +140,7 @@ async function createNodeTree(node: SeedNode, parentId: string | null, depth: nu
 async function main() {
   const jsonPath = process.argv[2];
   if (!jsonPath) {
-    console.error("Uso: DATOCMS_API_TOKEN=xxx npx tsx scripts/seed.ts <file.json>");
+    console.error("Uso: npm run seed -- <file.json>   (token letto da .env.local)");
     process.exit(1);
   }
 
